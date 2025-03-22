@@ -1,17 +1,42 @@
 class InputHandler {
     constructor() {
-        this.keys = {};
+        this.keys = new Set();
+        this.mousePosition = new Vector(0, 0);
+        this.isMouseDown = false;
+
+        document.addEventListener('keydown', (e) => this.keys.add(e.key));
+        document.addEventListener('keyup', (e) => this.keys.delete(e.key));
         
-        document.addEventListener('keydown', (e) => {
-            this.keys[e.key] = true;
+        // Add mouse event listeners
+        document.addEventListener('mousemove', (e) => {
+            const canvas = document.querySelector('canvas');
+            const rect = canvas.getBoundingClientRect();
+            this.mousePosition = new Vector(
+                e.clientX - rect.left,
+                e.clientY - rect.top
+            );
         });
-        
-        document.addEventListener('keyup', (e) => {
-            this.keys[e.key] = false;
+
+        document.addEventListener('mousedown', () => {
+            this.isMouseDown = true;
+        });
+
+        document.addEventListener('mouseup', () => {
+            this.isMouseDown = false;
         });
     }
 
     isKeyPressed(key) {
-        return this.keys[key] || false;
+        return this.keys.has(key);
+    }
+
+    getMousePosition() {
+        return this.mousePosition;
+    }
+
+    consumeClick() {
+        const wasClicked = this.isMouseDown;
+        this.isMouseDown = false;
+        return wasClicked;
     }
 } 

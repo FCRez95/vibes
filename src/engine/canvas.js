@@ -7,8 +7,8 @@ class Canvas {
     }
 
     resize() {
-        this.canvas.width = 700;
-        this.canvas.height = 400;
+        this.canvas.width = 900;
+        this.canvas.height = 700;
     }
 
     clear() {
