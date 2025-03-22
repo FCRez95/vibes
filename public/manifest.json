@@ -8,13 +8,5 @@
     "theme_color": "#3498db",
     "orientation": "portrait",
     "categories": ["games", "entertainment"],
-    "prefer_related_applications": false,
-    "shortcuts": [
-        {
-            "name": "Start Game",
-            "short_name": "Play",
-            "description": "Start a new game",
-            "url": "/"
-        }
-    ]
+    "prefer_related_applications": false
 } 
