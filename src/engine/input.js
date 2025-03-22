@@ -5,6 +5,7 @@ class InputHandler {
         this.mousePosition = new Vector(0, 0);
         this.isMouseDown = false;
         this.isTouching = false;
+        this.lastTouchPosition = null;
 
         document.addEventListener('keydown', (e) => this.keys.add(e.key));
         document.addEventListener('keyup', (e) => this.keys.delete(e.key));
@@ -32,10 +33,11 @@ class InputHandler {
             this.isTouching = true;
             const touch = e.touches[0];
             const rect = canvas.canvas.getBoundingClientRect();
-            this.mousePosition = new Vector(
+            this.lastTouchPosition = new Vector(
                 touch.clientX - rect.left,
                 touch.clientY - rect.top
             );
+            this.mousePosition = this.lastTouchPosition;
         });
 
         canvas.canvas.addEventListener('touchmove', (e) => {
@@ -50,6 +52,7 @@ class InputHandler {
 
         canvas.canvas.addEventListener('touchend', () => {
             this.isTouching = false;
+            this.lastTouchPosition = null;
         });
     }
 
@@ -62,9 +65,17 @@ class InputHandler {
     }
 
     consumeClick() {
-        const wasClicked = this.isMouseDown || this.isTouching;
+        const wasClicked = this.isMouseDown;
         this.isMouseDown = false;
-        this.isTouching = false;
         return wasClicked;
+    }
+
+    consumeTouchTarget() {
+        if (this.isTouching && this.lastTouchPosition) {
+            const position = this.lastTouchPosition;
+            this.lastTouchPosition = null;
+            return position;
+        }
+        return null;
     }
 } 

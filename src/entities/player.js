@@ -47,33 +47,42 @@ class Player extends Entity {
         this.position.x = Math.max(this.radius, Math.min(map.width - this.radius, this.position.x));
         this.position.y = Math.max(this.radius, Math.min(map.height - this.radius, this.position.y));
 
-        // Handle targeting
+        // Handle mouse click targeting
         if (input.consumeClick()) {
             const mousePos = input.getMousePosition();
-            // Convert screen coordinates to world coordinates
-            const worldMousePos = new Vector(
-                mousePos.x + camera.x,
-                mousePos.y + camera.y
-            );
-            
-            // Find closest monster that was clicked
-            this.target = null;
-            let closestDistance = 30; // Click tolerance radius
-            monsters.forEach(monster => {
-                if (!monster.isDead()) {
-                    const distance = monster.position.distance(worldMousePos);
-                    if (distance < closestDistance) {
-                        this.target = monster;
-                        closestDistance = distance;
-                    }
-                }
-            });
+            this.updateTarget(mousePos, camera, monsters);
+        }
+
+        // Handle touch targeting
+        const touchPos = input.consumeTouchTarget();
+        if (touchPos) {
+            this.updateTarget(touchPos, camera, monsters);
         }
 
         // Attack target if it exists
         if (this.target && !this.target.isDead()) {
             this.attack(this.target);
         }
+    }
+
+    updateTarget(screenPos, camera, monsters) {
+        // Convert screen coordinates to world coordinates
+        const worldPos = new Vector(
+            screenPos.x + camera.x,
+            screenPos.y + camera.y
+        );
+        
+        // Find closest monster that was clicked/touched
+        let closestDistance = 30; // Click tolerance radius
+        monsters.forEach(monster => {
+            if (!monster.isDead()) {
+                const distance = monster.position.distance(worldPos);
+                if (distance < closestDistance) {
+                    this.target = monster;
+                    closestDistance = distance;
+                }
+            }
+        });
     }
 
     draw(canvas, x, y) {
