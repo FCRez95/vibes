@@ -36,8 +36,8 @@ class Entity {
         // Draw health bar
         canvas.drawHealthBar(
             new Vector(x, y),
-            40,  // width
-            8,   // height
+            50,  // width
+            15,   // height
             this.health,
             this.getMaxHealth()
         );

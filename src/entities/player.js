@@ -22,10 +22,18 @@ class Player extends Entity {
     update(input, map, monsters, camera) {
         const movement = new Vector();
         
+        // Keyboard movement
         if (input.isKeyPressed('ArrowUp')) movement.y -= this.speed;
         if (input.isKeyPressed('ArrowDown')) movement.y += this.speed;
         if (input.isKeyPressed('ArrowLeft')) movement.x -= this.speed;
         if (input.isKeyPressed('ArrowRight')) movement.x += this.speed;
+
+        // Joystick movement
+        if (input.canvas.joystick.isActive) {
+            const joystickValue = input.canvas.joystick.value;
+            movement.x += joystickValue.x * this.speed;
+            movement.y += joystickValue.y * this.speed;
+        }
 
         // Calculate new position
         const newPosition = this.position.add(movement);

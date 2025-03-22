@@ -1,5 +1,6 @@
 class InputHandler {
-    constructor() {
+    constructor(canvas) {
+        this.canvas = canvas;
         this.keys = new Set();
         this.mousePosition = new Vector(0, 0);
         this.isMouseDown = false;
@@ -9,8 +10,7 @@ class InputHandler {
         
         // Add mouse event listeners
         document.addEventListener('mousemove', (e) => {
-            const canvas = document.querySelector('canvas');
-            const rect = canvas.getBoundingClientRect();
+            const rect = canvas.canvas.getBoundingClientRect();
             this.mousePosition = new Vector(
                 e.clientX - rect.left,
                 e.clientY - rect.top
