@@ -3,11 +3,8 @@ class Map {
         this.width = width;
         this.height = height;
         this.tileSize = 50; // Size of each tile
-        this.generateMap();
-    }
 
-    generateMap() {
-        // Create terrain types
+        // Define terrain types first
         this.TERRAIN = {
             GRASS: { type: 'grass', color: '#90EE90', walkable: true },
             WATER: { type: 'water', color: '#4FA4E8', walkable: false },
@@ -15,10 +12,27 @@ class Map {
             STONE: { type: 'stone', color: '#808080', walkable: true }
         };
 
-        // Initialize map grid
-        this.grid = Array(Math.floor(this.height / this.tileSize))
-            .fill()
-            .map(() => Array(Math.floor(this.width / this.tileSize)).fill(this.TERRAIN.GRASS));
+        // Calculate grid dimensions
+        this.gridRows = Math.floor(this.height / this.tileSize);
+        this.gridCols = Math.floor(this.width / this.tileSize);
+        
+        console.log('Grid dimensions:', this.gridRows, 'x', this.gridCols);
+
+        // Then initialize the map
+        this.generateMap();
+    }
+
+    generateMap() {
+        // Initialize map grid with grass terrain
+        this.grid = [];
+        for (let y = 0; y < this.gridRows; y++) {
+            this.grid[y] = [];
+            for (let x = 0; x < this.gridCols; x++) {
+                this.grid[y][x] = {...this.TERRAIN.GRASS}; // Create a new object copy
+            }
+        }
+
+        console.log('Grid initialized with size:', this.grid.length, 'x', this.grid[0].length);
 
         // Generate lake
         this.generateLake();
@@ -36,9 +50,9 @@ class Map {
     }
 
     generateLake() {
-        const centerX = Math.floor(this.width / (2 * this.tileSize));
-        const centerY = Math.floor(this.height / (2 * this.tileSize));
-        const lakeSize = 10;
+        const centerX = Math.floor(this.gridCols / 2);
+        const centerY = Math.floor(this.gridRows / 2);
+        const lakeSize = Math.min(10, Math.floor(Math.min(this.gridCols, this.gridRows) / 4));
 
         for (let y = -lakeSize; y <= lakeSize; y++) {
             for (let x = -lakeSize; x <= lakeSize; x++) {
@@ -46,7 +60,7 @@ class Map {
                     const mapX = centerX + x;
                     const mapY = centerY + y;
                     if (this.isInBounds(mapX, mapY)) {
-                        this.grid[mapY][mapX] = this.TERRAIN.WATER;
+                        this.grid[mapY][mapX] = {...this.TERRAIN.WATER}; // Create a new object copy
                     }
                 }
             }
@@ -56,8 +70,8 @@ class Map {
     generateTerrainPatches() {
         // Generate some random dirt and stone patches
         for (let i = 0; i < 20; i++) {
-            const x = Math.floor(Math.random() * (this.width / this.tileSize));
-            const y = Math.floor(Math.random() * (this.height / this.tileSize));
+            const x = Math.floor(Math.random() * this.gridCols);
+            const y = Math.floor(Math.random() * this.gridRows);
             const radius = Math.floor(Math.random() * 5) + 3;
             const terrain = Math.random() < 0.5 ? this.TERRAIN.DIRT : this.TERRAIN.STONE;
 
@@ -71,8 +85,18 @@ class Map {
                 if (x * x + y * y <= radius * radius) {
                     const mapX = centerX + x;
                     const mapY = centerY + y;
-                    if (this.isInBounds(mapX, mapY) && this.grid[mapY][mapX].type !== 'water') {
-                        this.grid[mapY][mapX] = terrain;
+                    
+                    // Add bounds checking and debug logging
+                    if (this.isInBounds(mapX, mapY)) {
+                        const currentTile = this.grid[mapY][mapX];
+                        if (!currentTile) {
+                            console.error('Invalid tile at:', mapX, mapY);
+                            continue;
+                        }
+                        
+                        if (currentTile.type !== 'water') {
+                            this.grid[mapY][mapX] = {...terrain}; // Create a new object copy
+                        }
                     }
                 }
             }
@@ -80,8 +104,8 @@ class Map {
     }
 
     isInBounds(x, y) {
-        return x >= 0 && x < this.width / this.tileSize && 
-               y >= 0 && y < this.height / this.tileSize;
+        return x >= 0 && x < this.gridCols && 
+               y >= 0 && y < this.gridRows;
     }
 
     isWalkable(x, y) {
@@ -110,12 +134,13 @@ class Map {
     }
 
     drawMinimap(canvas, player) {
-        const minimapSize = 150;
-        const scale = minimapSize / this.width;
+        const minimapSizeX = 150;
+        const scale = minimapSizeX / this.width;
+        const minimapSizeY = scale * this.height;
         
         // Draw background
         canvas.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        canvas.ctx.fillRect(10, 10, minimapSize, minimapSize);
+        canvas.ctx.fillRect(10, 10, minimapSizeX, minimapSizeY);
 
         // Draw terrain
         for (let y = 0; y < this.grid.length; y++) {

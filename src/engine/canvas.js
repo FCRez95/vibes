@@ -1,14 +1,24 @@
 class Canvas {
     constructor() {
-        this.canvas = document.getElementById('gameCanvas');
+        this.canvas = document.createElement('canvas');
         this.ctx = this.canvas.getContext('2d');
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
+        document.body.appendChild(this.canvas);
+
+        // Set canvas to full screen
+        this.setFullscreen();
+
+        // Add resize listener
+        window.addEventListener('resize', () => this.setFullscreen());
+
+        // Add some CSS to ensure no margins/padding and prevent scrolling
+        document.body.style.margin = '0';
+        document.body.style.padding = '0';
+        document.body.style.overflow = 'hidden';
     }
 
-    resize() {
-        this.canvas.width = 900;
-        this.canvas.height = 700;
+    setFullscreen() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
     }
 
     clear() {
