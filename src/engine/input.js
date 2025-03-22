@@ -4,6 +4,7 @@ class InputHandler {
         this.keys = new Set();
         this.mousePosition = new Vector(0, 0);
         this.isMouseDown = false;
+        this.isTouching = false;
 
         document.addEventListener('keydown', (e) => this.keys.add(e.key));
         document.addEventListener('keyup', (e) => this.keys.delete(e.key));
@@ -24,6 +25,32 @@ class InputHandler {
         document.addEventListener('mouseup', () => {
             this.isMouseDown = false;
         });
+
+        // Add touch event listeners
+        canvas.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            this.isTouching = true;
+            const touch = e.touches[0];
+            const rect = canvas.canvas.getBoundingClientRect();
+            this.mousePosition = new Vector(
+                touch.clientX - rect.left,
+                touch.clientY - rect.top
+            );
+        });
+
+        canvas.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            const touch = e.touches[0];
+            const rect = canvas.canvas.getBoundingClientRect();
+            this.mousePosition = new Vector(
+                touch.clientX - rect.left,
+                touch.clientY - rect.top
+            );
+        });
+
+        canvas.canvas.addEventListener('touchend', () => {
+            this.isTouching = false;
+        });
     }
 
     isKeyPressed(key) {
@@ -35,8 +62,9 @@ class InputHandler {
     }
 
     consumeClick() {
-        const wasClicked = this.isMouseDown;
+        const wasClicked = this.isMouseDown || this.isTouching;
         this.isMouseDown = false;
+        this.isTouching = false;
         return wasClicked;
     }
 } 
