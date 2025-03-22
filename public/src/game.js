@@ -1,6 +1,7 @@
 class Game {
     constructor(canvas) {
         this.canvas = canvas;
+        this.canvas.game = this; // Pass game instance to canvas
         this.input = new InputHandler(canvas);
         
         this.isGameOver = false;
@@ -126,7 +127,8 @@ class Game {
         // Draw minimap
         this.map.drawMinimap(this.canvas, this.player);
 
-        // Draw joystick
+        // Draw UI elements
+        this.canvas.drawAttackButton();
         this.canvas.drawJoystick();
     }
 

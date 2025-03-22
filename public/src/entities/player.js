@@ -17,6 +17,8 @@ class Player extends Entity {
         this.speed = 5;
         this.health = this.getMaxHealth(); // Set initial health based on constitution
         this.target = null;  // Currently targeted monster
+        this.targetIndex = 0; // Index of current target in nearby monsters array
+        this.maxTargetDistance = 200; // Maximum distance to consider monsters for targeting
     }
 
     update(input, map, monsters, camera) {
@@ -47,57 +49,42 @@ class Player extends Entity {
         this.position.x = Math.max(this.radius, Math.min(map.width - this.radius, this.position.x));
         this.position.y = Math.max(this.radius, Math.min(map.height - this.radius, this.position.y));
 
-        // Handle mouse click targeting
-        if (input.consumeClick()) {
-            const mousePos = input.getMousePosition();
-            this.updateTarget(mousePos, camera, monsters);
+        // Handle attack button click
+        if (input.consumeAttackButtonClick()) {
+            this.cycleTarget(monsters);
         }
 
-        // Handle touch targeting
-        const touchPos = input.consumeTouchTarget();
-        if (touchPos) {
-            this.updateTarget(touchPos, camera, monsters);
+        // Check if current target is too far or dead
+        if (this.target && (this.target.isDead() || this.position.distance(this.target.position) > this.maxTargetDistance)) {
+            this.target = null;
+            this.targetIndex = 0;
         }
 
-        // Attack target if it exists
-        if (this.target && !this.target.isDead()) {
+        // Attack target if it exists and is in range
+        if (this.target && !this.target.isDead() && this.position.distance(this.target.position) <= this.attackRange) {
             this.attack(this.target);
         }
     }
 
-    updateTarget(screenPos, camera, monsters) {
-        // Convert screen coordinates to world coordinates
-        const worldPos = new Vector(
-            screenPos.x + camera.x,
-            screenPos.y + camera.y
+    cycleTarget(monsters) {
+        // Get all alive monsters within range
+        const nearbyMonsters = monsters.filter(monster => 
+            !monster.isDead() && 
+            this.position.distance(monster.position) <= this.maxTargetDistance
         );
-        
-        // Find closest monster that was clicked/touched
-        let closestDistance = 30; // Click tolerance radius
-        monsters.forEach(monster => {
-            if (!monster.isDead()) {
-                const distance = monster.position.distance(worldPos);
-                if (distance < closestDistance) {
-                    this.target = monster;
-                    closestDistance = distance;
-                }
-            }
-        });
+
+        if (nearbyMonsters.length === 0) {
+            this.target = null;
+            this.targetIndex = 0;
+            return;
+        }
+
+        // Cycle to next target
+        this.targetIndex = (this.targetIndex + 1) % nearbyMonsters.length;
+        this.target = nearbyMonsters[this.targetIndex];
     }
 
     draw(canvas, x, y) {
         super.draw(canvas, x, y);
-
-        // Draw line to target if one exists
-        if (this.target && !this.target.isDead()) {
-            canvas.ctx.beginPath();
-            canvas.ctx.moveTo(x, y);
-            const targetScreenX = this.target.position.x - (this.position.x - x);
-            const targetScreenY = this.target.position.y - (this.position.y - y);
-            canvas.ctx.lineTo(targetScreenX, targetScreenY);
-            canvas.ctx.strokeStyle = 'red';
-            canvas.ctx.lineWidth = 2;
-            canvas.ctx.stroke();
-        }
     }
 } 

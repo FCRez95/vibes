@@ -52,7 +52,6 @@ class Monster extends Entity {
         }
     }
 
-    // Optional: Add method to visualize aggro range when debugging
     draw(canvas, x, y) {
         // Draw aggro range circle (semi-transparent)
         if (!this.isAggressive) {
@@ -65,5 +64,10 @@ class Monster extends Entity {
 
         // Call parent draw method
         super.draw(canvas, x, y);
+
+        // Draw selection border if this monster is the player's target
+        if (this === canvas.game.player.target) {
+            canvas.drawMonsterSelection(this, x, y);
+        }
     }
 } 

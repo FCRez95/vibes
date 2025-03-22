@@ -174,4 +174,36 @@ class Canvas {
         this.ctx.stroke();
         this.ctx.closePath();
     }
+
+    drawAttackButton() {
+        const buttonSize = 80;
+        const buttonX = this.canvas.width - buttonSize - 20;
+        const buttonY = this.canvas.height - buttonSize - 20;
+
+        // Draw button background
+        this.ctx.beginPath();
+        this.ctx.arc(buttonX + buttonSize/2, buttonY + buttonSize/2, buttonSize/2, 0, Math.PI * 2);
+        this.ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        this.ctx.fill();
+        this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+        this.ctx.stroke();
+
+        // Draw sword emoji
+        this.ctx.font = '30px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText('⚔️', buttonX + buttonSize/2, buttonY + buttonSize/2);
+    }
+
+    drawMonsterSelection(monster, x, y) {
+        if (!monster) return;
+
+        // Draw selection border
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, monster.radius + 5, 0, Math.PI * 2);
+        this.ctx.strokeStyle = '#ff0000';
+        this.ctx.lineWidth = 3;
+        this.ctx.stroke();
+    }
 } 
