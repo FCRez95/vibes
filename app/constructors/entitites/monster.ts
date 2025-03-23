@@ -1,9 +1,10 @@
-import { ICanvas } from "../models/game/engine/canvas";
-import { Player } from "../models/game/characters/player";
-import { Monster } from "../models/game/characters/monster";
-import { IPosition } from "../models/game/engine/position";
+import { ICanvas } from "../../models/game/engine/canvas";
+import { PlayerModel } from "../../models/game/entities/player-model";
+import { MonsterModel } from "../../models/game/entities/monster-model";
+import { IPosition } from "../../models/game/engine/position";
+import { IMap } from "../../models/game/engine/map";
 
-export class MonsterConstructor implements Monster {
+export class Monster implements MonsterModel {
   id: string;
   name: string;
   type: string;
@@ -68,11 +69,11 @@ export class MonsterConstructor implements Monster {
     return Date.now() - this.behavior.lastAttackTime >= this.behavior.attackCooldown;
   }
 
-  attack(player: Player): void {
+  attack(player: PlayerModel): void {
     if (!this.canAttack()) return;
 
     // Calculate damage based on monster's stats
-    const damage = this.stats.strength * 2;
+    const damage = this.stats.strength * 1.3;
     
     // Apply damage to player
     if ('health' in player) {
@@ -82,7 +83,7 @@ export class MonsterConstructor implements Monster {
     this.behavior.lastAttackTime = Date.now();
   }
 
-  update(player: Player): void {
+  update(player: PlayerModel, map: IMap): void {
     if (this.behavior.type === 'aggressive') {
       // Calculate distance to player
       const dxToPlayer = player.position.x - this.position.x;
@@ -97,25 +98,67 @@ export class MonsterConstructor implements Monster {
       // If monster is too far from lair, return to it
       if (distanceToLair > 500) {
         const angle = Math.atan2(dyToLair, dxToLair);
-        const newX = this.position.x + Math.cos(angle) * this.stats.dexterity;
-        const newY = this.position.y + Math.sin(angle) * this.stats.dexterity;
+        const newX = this.position.x + Math.cos(angle) * this.stats.dexterity/3;
+        const newY = this.position.y + Math.sin(angle) * this.stats.dexterity/3;
         
-        // Only move if not colliding with player
-        if (!this.checkCollision(newX, newY, player)) {
+        // Only move if not colliding with player and tile is walkable
+        if (!this.checkCollision(newX, newY, player) && map.isWalkable(newX, newY)) {
           this.position.x = newX;
           this.position.y = newY;
         }
       }
       // If player is in agro range, chase and attack them
       else if (distanceToPlayer <= this.behavior.agroRange) {
+        // Try direct path first
         const angle = Math.atan2(dyToPlayer, dxToPlayer);
-        const newX = this.position.x + Math.cos(angle) * this.stats.dexterity;
-        const newY = this.position.y + Math.sin(angle) * this.stats.dexterity;
+        const newX = this.position.x + Math.cos(angle) * this.stats.dexterity/3;
+        const newY = this.position.y + Math.sin(angle) * this.stats.dexterity/3;
         
-        // Only move if not colliding with player
-        if (!this.checkCollision(newX, newY, player)) {
+        if (!this.checkCollision(newX, newY, player) && map.isWalkable(newX, newY)) {
+          // Direct path is clear, move towards player
           this.position.x = newX;
           this.position.y = newY;
+        } else {
+          // Direct path is blocked, try to find a path around obstacles
+          const possibleAngles = [
+            angle + Math.PI/2,  // 90 degrees right
+            angle - Math.PI/2   // 90 degrees left
+          ];
+
+          let foundPath = false;
+          for (const testAngle of possibleAngles) {
+            const testX = this.position.x + Math.cos(testAngle) * this.stats.dexterity/3;
+            const testY = this.position.y + Math.sin(testAngle) * this.stats.dexterity/3;
+            
+            if (!this.checkCollision(testX, testY, player) && map.isWalkable(testX, testY)) {
+              // Found a valid path
+              this.position.x = testX;
+              this.position.y = testY;
+              foundPath = true;
+              break;
+            }
+          }
+
+          // If no path found, try to move along walls
+          if (!foundPath) {
+            // Try to slide along walls by checking perpendicular directions
+            const wallAngles = [
+              angle + Math.PI/2,  // 90 degrees right
+              angle - Math.PI/2   // 90 degrees left
+            ];
+
+            for (const wallAngle of wallAngles) {
+              const wallX = this.position.x + Math.cos(wallAngle) * this.stats.dexterity/3;
+              const wallY = this.position.y + Math.sin(wallAngle) * this.stats.dexterity/3;
+              
+              if (!this.checkCollision(wallX, wallY, player) && map.isWalkable(wallX, wallY)) {
+                this.position.x = wallX;
+                this.position.y = wallY;
+                foundPath = true;
+                break;
+              }
+            }
+          }
         }
 
         // Attack if in range
@@ -126,7 +169,7 @@ export class MonsterConstructor implements Monster {
     }
   }
 
-  private checkCollision(x: number, y: number, player: Player): boolean {
+  private checkCollision(x: number, y: number, player: PlayerModel): boolean {
     const playerRadius = 20; // Player's collision radius
     const monsterRadius = 15; // Monster's collision radius
     const totalRadius = playerRadius + monsterRadius;
@@ -155,10 +198,10 @@ export class MonsterConstructor implements Monster {
 
     // Draw monster with different colors based on state
     const monsterColor = this.behavior.type === 'aggressive' ? '#ff0000' : '#800000';
-    canvas.drawCircle(screenX, screenY, 15, monsterColor);
+    canvas.drawCircle(screenX, screenY, 10, monsterColor);
     
     // Draw health bar
-    const healthBarWidth = 30;
+    const healthBarWidth = 40;
     const healthBarHeight = 4;
     const healthPercentage = this.health / this.maxHealth;
     
@@ -167,7 +210,7 @@ export class MonsterConstructor implements Monster {
       screenY - 25,
       healthBarWidth,
       healthBarHeight,
-      '#333333'
+      '#000'
     );
     
     canvas.drawRect(

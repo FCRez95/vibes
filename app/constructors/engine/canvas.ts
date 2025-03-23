@@ -1,6 +1,6 @@
-import { ICanvas } from '../models/game/engine/canvas';
+import { ICanvas } from '../../models/game/engine/canvas';
 
-export class CanvasConstructor implements ICanvas {
+export class CanvasManipulator implements ICanvas {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
 

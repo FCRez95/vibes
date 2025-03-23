@@ -1,8 +1,9 @@
 import { ICanvas } from './canvas';
 import { IMap } from './map';
-import { Player } from '../characters/player';
-import { Monster } from '../characters/monster';
-import { Controls } from './controls';
+import { PlayerModel } from '../entities/player-model';
+import { MonsterModel } from '../entities/monster-model';
+import { ControlsModel } from './controls';
+
 
 export interface ICamera {
   x: number;
@@ -12,10 +13,10 @@ export interface ICamera {
 export interface IGame {
   canvas: ICanvas;
   map: IMap;
-  player: Player;
+  player: PlayerModel;
   camera: ICamera;
-  monsters: Monster[];
-  controls: Controls;
+  monsters: MonsterModel[];
+  controls: ControlsModel;
   isGameOver: boolean;
   
   initGame(): void;

@@ -1,42 +1,62 @@
-import { IGame, ICamera } from '../models/game/engine/game';
-import { ICanvas } from '../models/game/engine/canvas';
-import { IMap } from '../models/game/engine/map';
-import { MapConstructor } from './MapConstructor';
-import { PlayerConstructor } from './PlayerConstructor';
-import { MonsterConstructor } from './MonsterConstructor';
-import { ControlsConstructor } from './ControlsConstructor';
+import { IGame, ICamera } from '../../models/game/engine/game';
+import { ICanvas } from '../../models/game/engine/canvas';
+import { Map } from './map';
+import { Player } from '../entitites/player';
+import { Monster } from '../entitites/monster';
+import { Controls } from './controls';
+import { Lair } from '../entitites/lair';
+import { MonsterModel } from '../../models/game/entities/monster-model';
+import { lairPositions } from '../entitites/all-lairs';
 
 export class GameConstructor implements IGame {
   canvas: ICanvas;
   isGameOver: boolean;
-  map: IMap;
-  player: PlayerConstructor;
+  map: Map;
+  player: Player;
   camera: ICamera;
-  monsters: MonsterConstructor[];
-  controls: ControlsConstructor;
+  monsters: MonsterModel[];
+  lairs: Lair[];
+  controls: Controls;
 
   constructor(canvas: ICanvas) {
     this.canvas = canvas;
     this.isGameOver = false;
     this.monsters = [];
+    this.lairs = [];
     this.camera = { x: 0, y: 0 };
-    this.player = new PlayerConstructor();
-    this.map = new MapConstructor(0, 0);
-    this.controls = new ControlsConstructor(canvas);
+    this.player = new Player(0, 0, {
+      running: { name: 'Running', level: 1, experience: 0, maxExperience: 100 },
+      unarmed: { name: 'Unarmed', level: 1, experience: 0, maxExperience: 100 },
+      axe: { name: 'Axe', level: 1, experience: 0, maxExperience: 100 },
+      throwing: { name: 'Throwing', level: 1, experience: 0, maxExperience: 100 },
+      bow: { name: 'Bow', level: 1, experience: 0, maxExperience: 100 },
+      club: { name: 'Club', level: 1, experience: 0, maxExperience: 100 },
+      summoningMagic: { name: 'Summoning Magic', level: 1, experience: 0, maxExperience: 100 },
+      elementalMagic: { name: 'Elemental Magic', level: 1, experience: 0, maxExperience: 100 },
+      shammanMagic: { name: 'Shamman Magic', level: 1, experience: 0, maxExperience: 100 },
+      natureMagic: { name: 'Nature Magic', level: 1, experience: 0, maxExperience: 100 },
+    });
+    this.map = new Map(6000, 6000, lairPositions);
+    this.controls = new Controls(canvas);
     
     this.initGame();
   }
 
   initGame(): void {
-    // Create map (4 times the canvas size)
-    this.map = new MapConstructor(
-      this.canvas.canvas.width * 4,
-      this.canvas.canvas.height * 4
-    );
-    
     // Find a suitable starting position for the player
     const startPos = this.findWalkablePosition();
-    this.player = new PlayerConstructor(startPos.x, startPos.y);
+    this.player = new Player(startPos.x, startPos.y, {
+      running: { name: 'Running', level: 20, experience: 0, maxExperience: 100 },
+      unarmed: { name: 'Unarmed', level: 20, experience: 0, maxExperience: 100 },
+      axe: { name: 'Axe', level: 20, experience: 0, maxExperience: 100 },
+      throwing: { name: 'Throwing', level: 1, experience: 0, maxExperience: 100 },
+      bow: { name: 'Bow', level: 1, experience: 0, maxExperience: 100 },
+      club: { name: 'Club', level: 1, experience: 0, maxExperience: 100 },
+      summoningMagic: { name: 'Summoning Magic', level: 1, experience: 0, maxExperience: 100 },
+      elementalMagic: { name: 'Elemental Magic', level: 1, experience: 0, maxExperience: 100 },
+      shammanMagic: { name: 'Shamman Magic', level: 1, experience: 0, maxExperience: 100 },
+      natureMagic: { name: 'Nature Magic', level: 1, experience: 0, maxExperience: 100 },
+    });
     
     // Camera position (top-left corner of the view)
     this.camera = {
@@ -44,21 +64,25 @@ export class GameConstructor implements IGame {
       y: this.player.position.y - this.canvas.canvas.height / 2
     };
 
-    // Create monsters at the lairs
+    // Initialize lairs
+    this.initializeLairs();
+  }
+
+  private initializeLairs(): void {
+    this.lairs = [];
     this.monsters = [];
-    this.map.monsterLairs.forEach((lair: { x: number; y: number; }) => {
-      // Spawn 2 monsters per lair
-      for (let i = 0; i < 2; i++) {
-        // Find a walkable position near the lair
-        const angle = (Math.PI * 2 * i) / 2; // Distribute monsters around the lair
-        const distance = 30; // Distance from lair
-        const monsterX = lair.x + Math.cos(angle) * distance;
-        const monsterY = lair.y + Math.sin(angle) * distance;
-        
-        const monsterPos = this.findWalkablePosition(monsterX, monsterY);
-        const monster = new MonsterConstructor(monsterPos.x, monsterPos.y);
-        monster.lairPosition = { x: lair.x, y: lair.y }; // Store lair position
-        this.monsters.push(monster);
+
+    lairPositions.forEach(({ x, y, difficulty }) => {
+      const lair = new Lair(x, y, difficulty);
+      this.lairs.push(lair);
+
+      // Spawn initial monsters for each lair
+      for (let i = 0; i < lair.maxMonsters; i++) {
+        try {
+          lair.spawnMonster();
+        } catch (error) {
+          console.error('Failed to spawn monster:', error);
+        }
       }
     });
   }
@@ -102,6 +126,9 @@ export class GameConstructor implements IGame {
       return;
     }
 
+    // Get all monsters from lairs
+    this.monsters = this.lairs.flatMap(lair => lair.currentMonsters);
+
     // Update controls
     this.controls.update();
     
@@ -111,17 +138,22 @@ export class GameConstructor implements IGame {
     // Update available targets for attack
     this.controls.attack.setAvailableTargets(this.monsters);
 
-    // Get player movement from joystick
+    // Update player actions
     const direction = this.controls.joystick.getDirection();
     this.player.update(direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
     
     this.camera.x = this.player.position.x - this.canvas.canvas.width / 2;
     this.camera.y = this.player.position.y - this.canvas.canvas.height / 2;
 
+    // Update lairs
+    this.lairs.forEach(lair => {
+      lair.update();
+    });
+
     // Update monsters
     this.monsters.forEach(monster => {
       if (!monster.isDead()) {
-        monster.update(this.player);
+        monster.update(this.player, this.map);
       }
     });
   }
@@ -135,6 +167,11 @@ export class GameConstructor implements IGame {
     }
 
     this.map.draw(this.canvas, this.camera);
+
+    // Draw lairs
+    this.lairs.forEach(lair => {
+      lair.draw(this.canvas, this.camera);
+    });
 
     this.monsters.forEach(monster => {
       if (!monster.isDead()) {

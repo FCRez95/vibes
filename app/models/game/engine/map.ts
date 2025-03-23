@@ -1,5 +1,5 @@
 import { ICanvas } from './canvas';
-import { Player } from '../characters/player';
+import { PlayerModel } from '../entities/player-model';
 
 export interface ITerrain {
   type: string;
@@ -12,16 +12,17 @@ export interface ITerrainTypes {
   WATER: ITerrain;
   DIRT: ITerrain;
   STONE: ITerrain;
+  FOREST: ITerrain;
 }
 
 export interface IMap {
   width: number;
   height: number;
   tileSize: number;
-  monsterLairs: { x: number; y: number }[];
+  monsterLairs: { x: number; y: number, difficulty: string }[];
 
   isWalkable(x: number, y: number): boolean;
   getTile(x: number, y: number): { type: string; walkable: boolean };
   draw(canvas: ICanvas, camera: { x: number; y: number }): void;
-  drawMinimap(canvas: ICanvas, player: Player): void;
+  drawMinimap(canvas: ICanvas, player: PlayerModel): void;
 } 

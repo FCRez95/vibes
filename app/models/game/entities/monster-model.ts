@@ -1,7 +1,8 @@
 import { ICanvas } from "../engine/canvas";
-import { Player } from "./player";
+import { PlayerModel } from "./player-model";
+import { IMap } from "../engine/map";
 
-export interface Monster {
+export interface MonsterModel {
     id: string;
     name: string;
     type: string;
@@ -29,6 +30,6 @@ export interface Monster {
     };
 
     isDead(): boolean;
-    update(player: Player): void;
+    update(player: PlayerModel, map: IMap): void;
     draw(canvas: ICanvas, camera: { x: number; y: number }): void;
 } 

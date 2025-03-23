@@ -1,43 +1,42 @@
 import { ICanvas } from "./canvas";
 import { IPosition } from "./position";
-import { Monster } from '../characters/monster';
+import { MonsterModel } from '../entities/monster-model';
 
-export interface Joystick {
-  position: IPosition;
-  radius: number;
+export interface JoystickModel {
   isActive: boolean;
+  angle: number;
+  magnitude: number;
   direction: { x: number; y: number };
-  
-  // Methods
-  draw(canvas: ICanvas): void;
-  handleTouchStart(x: number, y: number): void;
-  handleTouchMove(x: number, y: number): void;
+  handleTouchStart(): void;
+  handleTouchMove(direction: { x: number; y: number }, magnitude: number): void;
   handleTouchEnd(): void;
   getDirection(): { x: number; y: number };
 }
 
-export interface Attack {
+export interface AttackModel {
   position: IPosition;
   radius: number;
   range: number;
-  
-  // Methods
+  selectedTargetIndex: number;
+  availableTargets: MonsterModel[];
+  lastClickTime: number;
+  clickCooldown: number;
+  playerPosition: IPosition;
+  setPlayerPosition(position: IPosition): void;
+  setAvailableTargets(targets: MonsterModel[]): void;
+  getSelectedTarget(): MonsterModel | null;
   update(): void;
   draw(canvas: ICanvas, camera: { x: number; y: number }): void;
   handleClick(): void;
-  setAvailableTargets(targets: Monster[]): void;
-  getSelectedTarget(): Monster | null;
-  setPlayerPosition(position: IPosition): void;
 }
 
-export interface Controls {
-  joystick: Joystick;
-  attack: Attack;
-  
-  // Methods
+export interface ControlsModel {
+  joystick: JoystickModel;
+  attack: AttackModel;
   update(): void;
   draw(canvas: ICanvas, camera: { x: number; y: number }): void;
   handleTouchStart(x: number, y: number): void;
   handleTouchMove(x: number, y: number): void;
   handleTouchEnd(): void;
+  handleAttackClick(): void;
 } 

@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef } from 'react';
-import { CanvasConstructor } from './constructors/CanvasConstructor';
-import { GameConstructor } from './constructors/GameConstructor';
+import { CanvasManipulator } from './constructors/engine/canvas';
+import { GameConstructor } from './constructors/engine/game';
+import { GameControls } from './components/GameControls';
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -12,13 +13,13 @@ export default function Home() {
     if (!canvasRef.current) return;
 
     // Set up canvas
-    const canvas = new CanvasConstructor(canvasRef.current);
+    const canvas = new CanvasManipulator(canvasRef.current);
     
     // Set canvas size to match container
     const container = canvasRef.current.parentElement;
     if (container) {
       const rect = container.getBoundingClientRect();
-      canvas.resize(rect.width, rect.height);
+      canvas.resize(rect.width-50, rect.height-50);
     } else {
       canvas.resize(window.innerWidth-50, window.innerHeight-50);
     }
@@ -123,6 +124,28 @@ export default function Home() {
   return (
     <main className="w-full h-full flex justify-center items-center overflow-hidden">
       <canvas ref={canvasRef} className="border border-gray-300" />
+      <GameControls 
+        onAttackClick={() => {
+          if (gameInstanceRef.current) {
+            gameInstanceRef.current.controls.handleAttackClick();  
+          }
+        }} 
+        onJoystickMove={(direction) => {
+          if (gameInstanceRef.current) {
+            gameInstanceRef.current.controls.handleJoystickMove(direction);
+          }
+        }} 
+        onJoystickStart={() => {
+          if (gameInstanceRef.current) {
+            gameInstanceRef.current.controls.handleJoystickStart();
+          }
+        }} 
+        onJoystickEnd={() => {
+          if (gameInstanceRef.current) {
+            gameInstanceRef.current.controls.handleJoystickEnd();
+          }
+        }} 
+      />
     </main>
   );
 }
