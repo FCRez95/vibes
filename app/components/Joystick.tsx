@@ -137,7 +137,17 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
     <div 
       ref={joystickRef}
       className="absolute bottom-5 left-5"
-      style={{ width: radius * 2, height: radius * 2 }}
+      style={{ 
+        width: radius * 2, 
+        height: radius * 2,
+        position: 'fixed',
+        bottom: '20px',
+        left: '20px',
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none'
+      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -162,19 +172,6 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
           transition: isActive ? 'none' : 'all 0.1s ease-out'
         }}
       />
-      
-      {/* Direction line */}
-      {isActive && (
-        <div 
-          className="absolute h-0.5 bg-red-500/50 origin-left"
-          style={{
-            width: magnitude * radius,
-            left: radius,
-            top: radius,
-            transform: `rotate(${Math.atan2(direction.y, direction.x)}rad)`
-          }}
-        />
-      )}
     </div>
   );
 } 

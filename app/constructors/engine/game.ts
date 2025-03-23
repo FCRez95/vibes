@@ -46,7 +46,7 @@ export class GameConstructor implements IGame {
     // Find a suitable starting position for the player
     const startPos = this.findWalkablePosition();
     this.player = new Player(startPos.x, startPos.y, {
-      running: { name: 'Running', level: 20, experience: 0, maxExperience: 100 },
+      running: { name: 'Running', level: 8, experience: 0, maxExperience: 100 },
       unarmed: { name: 'Unarmed', level: 20, experience: 0, maxExperience: 100 },
       axe: { name: 'Axe', level: 20, experience: 0, maxExperience: 100 },
       throwing: { name: 'Throwing', level: 1, experience: 0, maxExperience: 100 },

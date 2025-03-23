@@ -15,16 +15,26 @@ export function GameControls({
   onJoystickEnd
 }: GameControlsProps) {
   return (
-    <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+    <div 
+      className="absolute top-0 left-0 w-full h-full"
+      style={{
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none'
+      }}
+    >
       <div className="flex w-full h-full">
-        <Joystick 
-          onMove={onJoystickMove}
-          onStart={onJoystickStart}
-          onEnd={onJoystickEnd}
-        />
+        <div className="pointer-events-auto">
+          <Joystick 
+            onMove={onJoystickMove}
+            onStart={onJoystickStart}
+            onEnd={onJoystickEnd}
+          />
+        </div>
         <button 
           onClick={onAttackClick} 
-          className="absolute bottom-5 right-5 w-20 h-20 rounded-full bg-[#f70d235c] border-none"
+          className="absolute bottom-5 right-5 w-20 h-20 rounded-full bg-[#f70d235c] border-none pointer-events-auto"
         >
           <span role="img" aria-label="sword">⚔️</span>
         </button>
