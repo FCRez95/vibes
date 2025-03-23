@@ -30,8 +30,8 @@ export class GameConstructor implements IGame {
   initGame(): void {
     // Create map (4 times the canvas size)
     this.map = new MapConstructor(
-      this.canvas.width * 4,
-      this.canvas.height * 4
+      this.canvas.canvas.width * 4,
+      this.canvas.canvas.height * 4
     );
     
     // Find a suitable starting position for the player
@@ -40,17 +40,26 @@ export class GameConstructor implements IGame {
     
     // Camera position (top-left corner of the view)
     this.camera = {
-      x: this.player.position.x - this.canvas.width / 2,
-      y: this.player.position.y - this.canvas.height / 2
+      x: this.player.position.x - this.canvas.canvas.width / 2,
+      y: this.player.position.y - this.canvas.canvas.height / 2
     };
 
     // Create monsters at the lairs
     this.monsters = [];
     this.map.monsterLairs.forEach((lair: { x: number; y: number; }) => {
-      const monsterPos1 = this.findWalkablePosition(lair.x - 30, lair.y - 30);
-      const monsterPos2 = this.findWalkablePosition(lair.x + 30, lair.y + 30);
-      this.monsters.push(new MonsterConstructor(monsterPos1.x, monsterPos1.y));
-      this.monsters.push(new MonsterConstructor(monsterPos2.x, monsterPos2.y));
+      // Spawn 2 monsters per lair
+      for (let i = 0; i < 2; i++) {
+        // Find a walkable position near the lair
+        const angle = (Math.PI * 2 * i) / 2; // Distribute monsters around the lair
+        const distance = 30; // Distance from lair
+        const monsterX = lair.x + Math.cos(angle) * distance;
+        const monsterY = lair.y + Math.sin(angle) * distance;
+        
+        const monsterPos = this.findWalkablePosition(monsterX, monsterY);
+        const monster = new MonsterConstructor(monsterPos.x, monsterPos.y);
+        monster.lairPosition = { x: lair.x, y: lair.y }; // Store lair position
+        this.monsters.push(monster);
+      }
     });
   }
 
@@ -95,13 +104,19 @@ export class GameConstructor implements IGame {
 
     // Update controls
     this.controls.update();
+    
+    // Update player position in attack controls
+    this.controls.attack.setPlayerPosition(this.player.position);
+
+    // Update available targets for attack
+    this.controls.attack.setAvailableTargets(this.monsters);
 
     // Get player movement from joystick
     const direction = this.controls.joystick.getDirection();
-    this.player.update(direction, this.map);
+    this.player.update(direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
     
-    this.camera.x = this.player.position.x - this.canvas.width / 2;
-    this.camera.y = this.player.position.y - this.canvas.height / 2;
+    this.camera.x = this.player.position.x - this.canvas.canvas.width / 2;
+    this.camera.y = this.player.position.y - this.canvas.canvas.height / 2;
 
     // Update monsters
     this.monsters.forEach(monster => {
@@ -123,7 +138,7 @@ export class GameConstructor implements IGame {
 
     this.monsters.forEach(monster => {
       if (!monster.isDead()) {
-        monster.draw(this.canvas);
+        monster.draw(this.canvas, this.camera);
       }
     });
 
@@ -132,14 +147,14 @@ export class GameConstructor implements IGame {
 
     this.map.drawMinimap(this.canvas, this.player);
 
-    // Draw controls
-    this.controls.draw(this.canvas);
+    // Draw controls with camera
+    this.controls.draw(this.canvas, this.camera);
   }
 
   private drawGameOver(): void {
-    this.canvas.drawRect(0, 0, this.canvas.width, this.canvas.height, 'rgba(0, 0, 0, 0.8)');
-    this.canvas.drawText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 40, '#ff0000', 64, 'Arial');
-    this.canvas.drawText('Press ENTER to restart', this.canvas.width / 2, this.canvas.height / 2 + 40, '#ffffff', 24, 'Arial');
+    this.canvas.drawRect(0, 0, this.canvas.canvas.width, this.canvas.canvas.height, 'rgba(0, 0, 0, 0.8)');
+    this.canvas.drawText('GAME OVER', this.canvas.canvas.width / 2, this.canvas.canvas.height / 2 - 40, '#ff0000', 64, 'Arial');
+    this.canvas.drawText('Press ENTER to restart', this.canvas.canvas.width / 2, this.canvas.canvas.height / 2 + 40, '#ffffff', 24, 'Arial');
   }
 
   handleTouchStart(x: number, y: number): void {

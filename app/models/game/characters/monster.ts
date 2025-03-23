@@ -23,12 +23,12 @@ export interface Monster {
         chance: number;
     }[];
     behavior: {
-        type: string;
+        type: 'aggressive' | 'passive' | 'fleeing';
         range: number;
         attackPattern: string;
     };
 
     isDead(): boolean;
     update(player: Player): void;
-    draw(canvas: ICanvas): void;
+    draw(canvas: ICanvas, camera: { x: number; y: number }): void;
 } 

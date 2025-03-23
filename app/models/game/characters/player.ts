@@ -32,6 +32,6 @@ export interface Player {
     };
 
     isDead(): boolean;
-    update(direction: { x: number; y: number }, map: IMap, monsters: Monster[], camera: { x: number; y: number }): void;
+    update(direction: { x: number; y: number }, map: IMap, monsters: Monster[], selectedMonster: Monster): void;
     draw(canvas: ICanvas, camera: { x: number; y: number }): void;
 } 

@@ -1,12 +1,15 @@
 import { ICanvas } from "../models/game/engine/canvas";
-import { Controls, Joystick, Attack } from "../models/game/controls";
+import { Controls, Joystick, Attack } from "../models/game/engine/controls";
 import { IPosition } from "../models/game/engine/position";
+import { Monster } from "../models/game/characters/monster";
+
 class JoystickConstructor implements Joystick {
   position: IPosition;
   radius: number;
   isActive: boolean;
   angle: number;
   magnitude: number;
+  direction: { x: number; y: number };
   private knobPosition: IPosition;
   private knobRadius: number;
 
@@ -17,6 +20,7 @@ class JoystickConstructor implements Joystick {
     this.isActive = false;
     this.angle = 0;
     this.magnitude = 0;
+    this.direction = { x: 0, y: 0 };
     this.knobPosition = { ...this.position };
   }
 
@@ -49,6 +53,7 @@ class JoystickConstructor implements Joystick {
   handleTouchEnd(): void {
     this.isActive = false;
     this.magnitude = 0;
+    this.direction = { x: 0, y: 0 };
     this.knobPosition = { ...this.position };
   }
 
@@ -67,6 +72,10 @@ class JoystickConstructor implements Joystick {
     if (distance > this.radius) {
       this.angle = Math.atan2(dy, dx);
       this.magnitude = 1;
+      this.direction = {
+        x: Math.cos(this.angle),
+        y: Math.sin(this.angle)
+      };
       this.knobPosition = {
         x: this.position.x + Math.cos(this.angle) * this.radius,
         y: this.position.y + Math.sin(this.angle) * this.radius
@@ -74,6 +83,10 @@ class JoystickConstructor implements Joystick {
     } else {
       this.angle = Math.atan2(dy, dx);
       this.magnitude = distance / this.radius;
+      this.direction = {
+        x: dx / this.radius,
+        y: dy / this.radius
+      };
       this.knobPosition = { x, y };
     }
   }
@@ -82,56 +95,88 @@ class JoystickConstructor implements Joystick {
 class AttackConstructor implements Attack {
   position: IPosition;
   radius: number;
-  isActive: boolean;
-  cooldown: number;
-  damage: number;
   range: number;
-  private currentCooldown: number;
+  private selectedTargetIndex: number;
+  private availableTargets: Monster[];
+  private lastClickTime: number;
+  private clickCooldown: number;
+  private playerPosition: IPosition;
 
   constructor(x: number, y: number, radius: number) {
     this.position = { x, y };
     this.radius = radius;
-    this.isActive = false;
-    this.cooldown = 1000; // 1 second cooldown
-    this.currentCooldown = 0;
-    this.damage = 20;
-    this.range = 100;
+    this.range = 300;
+    this.selectedTargetIndex = -1;
+    this.availableTargets = [];
+    this.lastClickTime = 0;
+    this.clickCooldown = 200; // 200ms between target changes
+    this.playerPosition = { x: 0, y: 0 };
   }
 
-  activate(): void {
-    if (this.canAttack()) {
-      this.isActive = true;
-      this.currentCooldown = this.cooldown;
+  setPlayerPosition(position: IPosition): void {
+    this.playerPosition = position;
+  }
+
+  setAvailableTargets(targets: Monster[]): void {
+    // Filter out dead monsters and those outside attack range
+    this.availableTargets = targets.filter(monster => {
+      if (monster.isDead()) return false;
+      
+      // Calculate distance to monster from player's position
+      const dx = monster.position.x - this.playerPosition.x;
+      const dy = monster.position.y - this.playerPosition.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      return distance <= this.range;
+    });
+
+    // Reset selected target if it's no longer available
+    if (this.selectedTargetIndex >= this.availableTargets.length) {
+      this.selectedTargetIndex = -1;
     }
+  }
+
+  getSelectedTarget(): Monster | null {
+    if (this.selectedTargetIndex >= 0 && this.selectedTargetIndex < this.availableTargets.length) {
+      return this.availableTargets[this.selectedTargetIndex];
+    }
+    return null;
   }
 
   update(): void {
-    if (this.currentCooldown > 0) {
-      this.currentCooldown -= 16; // Assuming 60fps
-    }
-    if (this.currentCooldown <= 0) {
-      this.isActive = false;
-    }
+    return;
   }
 
-  draw(canvas: ICanvas): void {
+  draw(canvas: ICanvas, camera: { x: number; y: number }): void {
     // Draw attack button
     canvas.drawCircle(this.position.x, this.position.y, this.radius, 'rgba(255, 0, 0, 0.5)');
-    
-    // Draw cooldown indicator
-    if (this.currentCooldown > 0) {
-      const cooldownPercentage = this.currentCooldown / this.cooldown;
+
+    // Draw target indicator if a target is selected
+    const selectedTarget = this.getSelectedTarget();
+    if (selectedTarget) {
+      const screenX = selectedTarget.position.x - camera.x;
+      const screenY = selectedTarget.position.y - camera.y;
+      
+      // Draw targeting circle
       canvas.drawCircle(
-        this.position.x,
-        this.position.y,
-        this.radius * cooldownPercentage,
-        'rgba(0, 0, 0, 0.3)'
+        screenX,
+        screenY,
+        25,
+        'rgba(255, 0, 0, 0.3)'
       );
     }
   }
 
-  canAttack(): boolean {
-    return this.currentCooldown <= 0;
+  handleClick(): void {
+    const currentTime = Date.now();
+    if (currentTime - this.lastClickTime < this.clickCooldown) return;
+    
+    this.lastClickTime = currentTime;
+    
+    // Cycle through available targets
+    if (this.availableTargets.length > 0) {
+      this.selectedTargetIndex = (this.selectedTargetIndex + 1) % this.availableTargets.length;
+    }
   }
 }
 
@@ -147,15 +192,15 @@ export class ControlsConstructor implements Controls {
     const joystickRadius = 50;
     this.joystick = new JoystickConstructor(
       joystickRadius + 20,
-      canvas.height - joystickRadius - 20,
+      canvas.canvas.height - joystickRadius - 20,
       joystickRadius
     );
 
     // Initialize attack button in bottom right corner
     const attackRadius = 40;
     this.attack = new AttackConstructor(
-      canvas.width - attackRadius - 20,
-      canvas.height - attackRadius - 20,
+      canvas.canvas.width - attackRadius - 20,
+      canvas.canvas.height - attackRadius - 20,
       attackRadius
     );
   }
@@ -164,9 +209,9 @@ export class ControlsConstructor implements Controls {
     this.attack.update();
   }
 
-  draw(canvas: ICanvas): void {
+  draw(canvas: ICanvas, camera: { x: number; y: number }): void {
     this.joystick.draw(canvas);
-    this.attack.draw(canvas);
+    this.attack.draw(canvas, camera);
   }
 
   handleTouchStart(x: number, y: number): void {
@@ -178,7 +223,7 @@ export class ControlsConstructor implements Controls {
     const distance = Math.sqrt(dx * dx + dy * dy);
     
     if (distance <= this.attack.radius) {
-      this.attack.activate();
+      this.attack.handleClick();
     }
   }
 

@@ -1,6 +1,6 @@
 export interface ICanvas {
-  width: number;
-  height: number;
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
   
   // Basic canvas operations
   clear(): void;
@@ -13,4 +13,5 @@ export interface ICanvas {
   
   // Text rendering
   drawText(text: string, x: number, y: number, color: string, size: number, font: string): void;
+  drawLine(x1: number, y1: number, x2: number, y2: number, color: string, width: number): void;
 } 

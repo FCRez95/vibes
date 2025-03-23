@@ -2,7 +2,7 @@ import { ICanvas } from './canvas';
 import { IMap } from './map';
 import { Player } from '../characters/player';
 import { Monster } from '../characters/monster';
-import { Controls } from '../controls';
+import { Controls } from './controls';
 
 export interface ICamera {
   x: number;

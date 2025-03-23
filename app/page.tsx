@@ -13,7 +13,15 @@ export default function Home() {
 
     // Set up canvas
     const canvas = new CanvasConstructor(canvasRef.current);
-    canvas.resize(window.innerWidth-50, window.innerHeight-50);
+    
+    // Set canvas size to match container
+    const container = canvasRef.current.parentElement;
+    if (container) {
+      const rect = container.getBoundingClientRect();
+      canvas.resize(rect.width, rect.height);
+    } else {
+      canvas.resize(window.innerWidth-50, window.innerHeight-50);
+    }
 
     // Initialize game
     gameInstanceRef.current = new GameConstructor(canvas);
@@ -63,20 +71,57 @@ export default function Home() {
     canvasRef.current.addEventListener('touchmove', handleTouchMove);
     canvasRef.current.addEventListener('touchend', handleTouchEnd);
 
+    // Add mouse event handlers
+    const handleMouseDown = (e: MouseEvent) => {
+      e.preventDefault();
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (rect && gameInstanceRef.current) {
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        gameInstanceRef.current.handleTouchStart(x, y);
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (rect && gameInstanceRef.current) {
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        gameInstanceRef.current.handleTouchMove(x, y);
+      }
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      if (gameInstanceRef.current) {
+        gameInstanceRef.current.handleTouchEnd();
+      }
+    };
+
+    canvasRef.current.addEventListener('mousedown', handleMouseDown);
+    canvasRef.current.addEventListener('mousemove', handleMouseMove);
+    canvasRef.current.addEventListener('mouseup', handleMouseUp);
+    canvasRef.current.addEventListener('mouseleave', handleMouseUp);
+
     // Cleanup
     return () => {
-      cancelAnimationFrame(animationFrameId);
       if (canvasRef.current) {
         canvasRef.current.removeEventListener('touchstart', handleTouchStart);
         canvasRef.current.removeEventListener('touchmove', handleTouchMove);
         canvasRef.current.removeEventListener('touchend', handleTouchEnd);
+        canvasRef.current.removeEventListener('mousedown', handleMouseDown);
+        canvasRef.current.removeEventListener('mousemove', handleMouseMove);
+        canvasRef.current.removeEventListener('mouseup', handleMouseUp);
+        canvasRef.current.removeEventListener('mouseleave', handleMouseUp);
       }
+      cancelAnimationFrame(animationFrameId);
       gameInstanceRef.current = null;
     };
   }, []);
 
   return (
-    <main className="w-full h-full flex justify-center items-center">
+    <main className="w-full h-full flex justify-center items-center overflow-hidden">
       <canvas ref={canvasRef} className="border border-gray-300" />
     </main>
   );

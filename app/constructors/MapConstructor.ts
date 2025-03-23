@@ -112,8 +112,8 @@ export class MapConstructor implements IMap {
   draw(canvas: ICanvas, camera: { x: number; y: number }): void {
     const startX = Math.floor(camera.x / this.tileSize);
     const startY = Math.floor(camera.y / this.tileSize);
-    const tilesX = Math.ceil(canvas.width / this.tileSize) + 1;
-    const tilesY = Math.ceil(canvas.height / this.tileSize) + 1;
+    const tilesX = Math.ceil(canvas.canvas.width / this.tileSize) + 1;
+    const tilesY = Math.ceil(canvas.canvas.height / this.tileSize) + 1;
 
     for (let y = startY; y < startY + tilesY; y++) {
       for (let x = startX; x < startX + tilesX; x++) {

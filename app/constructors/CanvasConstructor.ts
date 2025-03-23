@@ -1,20 +1,16 @@
 import { ICanvas } from '../models/game/engine/canvas';
 
 export class CanvasConstructor implements ICanvas {
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
-  width: number;
-  height: number;
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
-    this.width = canvas.width;
-    this.height = canvas.height;
   }
 
   clear(): void {
-    this.ctx.clearRect(0, 0, this.width, this.height);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
   drawRect(x: number, y: number, width: number, height: number, color: string): void {
@@ -41,9 +37,16 @@ export class CanvasConstructor implements ICanvas {
   }
 
   resize(width: number, height: number): void {
-    this.width = width;
-    this.height = height;
     this.canvas.width = width;
     this.canvas.height = height;
+  }
+
+  drawLine(x1: number, y1: number, x2: number, y2: number, color: string, width: number): void {
+    this.ctx.beginPath();
+    this.ctx.moveTo(x1, y1);
+    this.ctx.lineTo(x2, y2);
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = width;
+    this.ctx.stroke();
   }
 } 
