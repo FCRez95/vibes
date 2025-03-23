@@ -98,7 +98,7 @@ export class GameConstructor implements IGame {
 
     // Get player movement from joystick
     const direction = this.controls.joystick.getDirection();
-    this.player.update(direction, this.map, this.monsters, this.camera);
+    this.player.update(direction, this.map);
     
     this.camera.x = this.player.position.x - this.canvas.width / 2;
     this.camera.y = this.player.position.y - this.canvas.height / 2;

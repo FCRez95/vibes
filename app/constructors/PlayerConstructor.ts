@@ -71,7 +71,7 @@ export class PlayerConstructor implements Player {
     return this.health <= 0;
   }
 
-  update(direction: { x: number; y: number }, map: IMap, monsters: Monster[], camera: { x: number; y: number }): void {
+  update(direction: { x: number; y: number }, map: IMap): void {
     // Update position based on joystick direction
     const speed = this.secondaryStats.speed;
     this.position.x += direction.x * speed;
