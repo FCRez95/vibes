@@ -2,7 +2,6 @@ import { ICanvas } from "../models/game/engine/canvas";
 import { IPosition } from "../models/game/engine/position";
 import { Player } from "../models/game/characters/player";
 import { IMap } from "../models/game/engine/map";
-import { Monster } from "../models/game/characters/monster";
 
 export class PlayerConstructor implements Player {
   id: string;
