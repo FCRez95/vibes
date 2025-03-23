@@ -25,11 +25,11 @@ export class PlayerConstructor implements Player {
     criticalChance: number;
     criticalDamage: number;
   };
-  inventory: any[];
+  inventory: string[];
   equipment: {
-    weapon: any;
-    armor: any;
-    accessory: any;
+    weapon: string;
+    armor: string;
+    accessory: string;
   };
 
   constructor(x: number = 0, y: number = 0) {
@@ -61,9 +61,9 @@ export class PlayerConstructor implements Player {
     // Initialize inventory and equipment
     this.inventory = [];
     this.equipment = {
-      weapon: null,
-      armor: null,
-      accessory: null
+      weapon: '',
+      armor: '',
+      accessory: ''
     };
   }
 

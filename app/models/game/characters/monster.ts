@@ -19,7 +19,7 @@ export interface Monster {
         vitality: number;
     };
     drops: {
-        item: any;
+        item: string;
         chance: number;
     }[];
     behavior: {

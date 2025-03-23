@@ -11,7 +11,6 @@ export class MapConstructor implements IMap {
   gridCols: number;
   monsterLairs: { x: number; y: number }[];
   TERRAIN: ITerrainTypes;
-  tiles: any[] = [];
 
   constructor(width: number, height: number) {
     this.width = width;

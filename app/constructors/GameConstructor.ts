@@ -61,8 +61,8 @@ export class GameConstructor implements IGame {
       }
     }
 
-    let x = preferredX || this.map.width / 2;
-    let y = preferredY || this.map.height / 2;
+    const x = preferredX || this.map.width / 2;
+    const y = preferredY || this.map.height / 2;
     
     let radius = 0;
     const maxRadius = Math.max(this.map.width, this.map.height);
@@ -123,8 +123,6 @@ export class GameConstructor implements IGame {
 
     this.monsters.forEach(monster => {
       if (!monster.isDead()) {
-        const screenX = monster.position.x - this.camera.x;
-        const screenY = monster.position.y - this.camera.y;
         monster.draw(this.canvas);
       }
     });

@@ -24,11 +24,11 @@ export interface Player {
         criticalChance: number;
         criticalDamage: number;
     };
-    inventory: any[];
+    inventory: string[];
     equipment: {
-        weapon: any;
-        armor: any;
-        accessory: any;
+        weapon: string;
+        armor: string;
+        accessory: string;
     };
 
     isDead(): boolean;
