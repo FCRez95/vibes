@@ -10,6 +10,7 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
   const joystickRef = useRef<HTMLDivElement>(null);
   const [isActive, setIsActive] = useState(false);
   const [position, setPosition] = useState({ x: 50, y: 50 });
+  const [basePosition, setBasePosition] = useState({ x: 50, y: 50 });
   const [direction, setDirection] = useState({ x: 0, y: 0 });
   const [magnitude, setMagnitude] = useState(0);
   const radius = 50;
@@ -24,16 +25,19 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
     const rect = joystickRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    const localX = x - rect.left;
-    const localY = y - rect.top;
-    const distance = Math.sqrt(
-      Math.pow(localX - radius, 2) + 
-      Math.pow(localY - radius, 2)
-    );
+    // Check if touch is in bottom left quarter of screen
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    const isInBottomLeftQuarter = x <= screenWidth / 2 && y >= screenHeight / 2;
 
-    if (distance <= radius) {
+    if (isInBottomLeftQuarter) {
       setIsActive(true);
       onStart();
+      
+      // Calculate the position relative to the joystick container
+      const localX = Math.min(Math.max(x - rect.left, radius), screenWidth / 2 - radius);
+      const localY = Math.min(Math.max(y - rect.top, radius), screenHeight / 2 - radius);
+      
       updatePosition(localX, localY);
     }
   };
@@ -134,44 +138,43 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
   };
 
   return (
-    <div 
-      ref={joystickRef}
-      className="absolute bottom-5 left-5"
-      style={{ 
-        width: radius * 2, 
-        height: radius * 2,
-        position: 'fixed',
-        bottom: '20px',
-        left: '20px',
-        touchAction: 'none',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        WebkitTouchCallout: 'none'
-      }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Base circle */}
+    <>
+      {/* Joystick */}
       <div 
-        className="absolute w-full h-full rounded-full bg-white/20"
-      />
-      
-      {/* Knob */}
-      <div 
-        className="absolute rounded-full bg-white/50"
-        style={{
-          width: knobSize,
-          height: knobSize,
-          left: position.x - knobSize / 2,
-          top: position.y - knobSize / 2,
-          transition: isActive ? 'none' : 'all 0.1s ease-out'
+        ref={joystickRef}
+        className="fixed bottom-0 left-0 w-1/2 h-1/2"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        style={{ 
+          touchAction: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          WebkitTouchCallout: 'none'
         }}
-      />
-    </div>
+      >
+        {/* Base circle */}
+        <div className="absolute w-[100px] h-[100px] rounded-full bg-white/20" style={{
+            left: basePosition.x,
+            bottom: basePosition.y
+        }}>
+            {/* Knob */}
+            <div 
+                className="relative rounded-full bg-white/50"
+                style={{
+                    width: knobSize,
+                    height: knobSize,
+                    left: position.x - knobSize / 2,
+                    top: position.y - knobSize / 2,
+                    transition: isActive ? 'none' : 'all 0.1s ease-out'
+                }}
+            />
+        </div>
+      </div>
+    </>
   );
 } 

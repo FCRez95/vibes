@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { CanvasManipulator } from './constructors/engine/canvas';
 import { GameConstructor } from './constructors/engine/game';
 import { GameControls } from './components/GameControls';
+import { Player } from './constructors/entitites/player';
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,13 +20,25 @@ export default function Home() {
     const container = canvasRef.current.parentElement;
     if (container) {
       const rect = container.getBoundingClientRect();
-      canvas.resize(rect.width-50, rect.height-50);
+      canvas.resize(rect.width, rect.height);
     } else {
       canvas.resize(window.innerWidth-50, window.innerHeight-50);
     }
 
     // Initialize game
-    gameInstanceRef.current = new GameConstructor(canvas);
+    const player = new Player(0, 0, {
+      running: { name: 'Running', level: 8, experience: 0, maxExperience: 100 },
+      unarmed: { name: 'Unarmed', level: 1, experience: 0, maxExperience: 100 },
+      axe: { name: 'Axe', level: 1, experience: 0, maxExperience: 100 },
+      throwing: { name: 'Throwing', level: 1, experience: 0, maxExperience: 100 },
+      bow: { name: 'Bow', level: 1, experience: 0, maxExperience: 100 },
+      club: { name: 'Club', level: 1, experience: 0, maxExperience: 100 },
+      summoningMagic: { name: 'Summoning Magic', level: 1, experience: 0, maxExperience: 100 },
+      elementalMagic: { name: 'Elemental Magic', level: 1, experience: 0, maxExperience: 100 },
+      shammanMagic: { name: 'Shamman Magic', level: 1, experience: 0, maxExperience: 100 },
+      natureMagic: { name: 'Nature Magic', level: 1, experience: 0, maxExperience: 100 },
+    });
+    gameInstanceRef.current = new GameConstructor(canvas, player);
 
     // Set up game loop
     let animationFrameId: number;
@@ -144,8 +157,13 @@ export default function Home() {
           if (gameInstanceRef.current) {
             gameInstanceRef.current.controls.handleJoystickEnd();
           }
-        }} 
+        }}
+        skills={() => {
+          if (gameInstanceRef.current) {
+            return gameInstanceRef.current.player.skills;
+          }
+        }}
       />
     </main>
-  );
+  );  
 }

@@ -18,24 +18,13 @@ export class GameConstructor implements IGame {
   lairs: Lair[];
   controls: Controls;
 
-  constructor(canvas: ICanvas) {
+  constructor(canvas: ICanvas, player: Player) {
     this.canvas = canvas;
     this.isGameOver = false;
     this.monsters = [];
     this.lairs = [];
     this.camera = { x: 0, y: 0 };
-    this.player = new Player(0, 0, {
-      running: { name: 'Running', level: 1, experience: 0, maxExperience: 100 },
-      unarmed: { name: 'Unarmed', level: 1, experience: 0, maxExperience: 100 },
-      axe: { name: 'Axe', level: 1, experience: 0, maxExperience: 100 },
-      throwing: { name: 'Throwing', level: 1, experience: 0, maxExperience: 100 },
-      bow: { name: 'Bow', level: 1, experience: 0, maxExperience: 100 },
-      club: { name: 'Club', level: 1, experience: 0, maxExperience: 100 },
-      summoningMagic: { name: 'Summoning Magic', level: 1, experience: 0, maxExperience: 100 },
-      elementalMagic: { name: 'Elemental Magic', level: 1, experience: 0, maxExperience: 100 },
-      shammanMagic: { name: 'Shamman Magic', level: 1, experience: 0, maxExperience: 100 },
-      natureMagic: { name: 'Nature Magic', level: 1, experience: 0, maxExperience: 100 },
-    });
+    this.player = player;
     this.map = new Map(6000, 6000, lairPositions);
     this.controls = new Controls(canvas);
     
@@ -45,18 +34,7 @@ export class GameConstructor implements IGame {
   initGame(): void {
     // Find a suitable starting position for the player
     const startPos = this.findWalkablePosition();
-    this.player = new Player(startPos.x, startPos.y, {
-      running: { name: 'Running', level: 8, experience: 0, maxExperience: 100 },
-      unarmed: { name: 'Unarmed', level: 20, experience: 0, maxExperience: 100 },
-      axe: { name: 'Axe', level: 20, experience: 0, maxExperience: 100 },
-      throwing: { name: 'Throwing', level: 1, experience: 0, maxExperience: 100 },
-      bow: { name: 'Bow', level: 1, experience: 0, maxExperience: 100 },
-      club: { name: 'Club', level: 1, experience: 0, maxExperience: 100 },
-      summoningMagic: { name: 'Summoning Magic', level: 1, experience: 0, maxExperience: 100 },
-      elementalMagic: { name: 'Elemental Magic', level: 1, experience: 0, maxExperience: 100 },
-      shammanMagic: { name: 'Shamman Magic', level: 1, experience: 0, maxExperience: 100 },
-      natureMagic: { name: 'Nature Magic', level: 1, experience: 0, maxExperience: 100 },
-    });
+    this.player = new Player(startPos.x, startPos.y, this.player.skills);
     
     // Camera position (top-left corner of the view)
     this.camera = {
