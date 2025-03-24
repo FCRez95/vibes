@@ -10,9 +10,6 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
   const joystickRef = useRef<HTMLDivElement>(null);
   const [isActive, setIsActive] = useState(false);
   const [position, setPosition] = useState({ x: 50, y: 50 });
-  const [basePosition, setBasePosition] = useState({ x: 50, y: 50 });
-  const [direction, setDirection] = useState({ x: 0, y: 0 });
-  const [magnitude, setMagnitude] = useState(0);
   const radius = 50;
   const knobSize = 40; // Size of the knob
 
@@ -58,8 +55,6 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
     
     setIsActive(false);
     setPosition({ x: radius, y: radius });
-    setDirection({ x: 0, y: 0 });
-    setMagnitude(0);
     onEnd();
   };
 
@@ -127,9 +122,6 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
       };
       setPosition({ x, y });
     }
-
-    setMagnitude(newMagnitude);
-    setDirection(newDirection);
     
     onMove({
       x: newDirection.x * newMagnitude,
@@ -159,8 +151,8 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
       >
         {/* Base circle */}
         <div className="absolute w-[100px] h-[100px] rounded-full bg-white/20" style={{
-            left: basePosition.x,
-            bottom: basePosition.y
+            left: position.x,
+            bottom: position.y
         }}>
             {/* Knob */}
             <div 

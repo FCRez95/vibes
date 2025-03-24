@@ -1,4 +1,3 @@
-import { ICanvas } from "../engine/canvas";
 import { MonsterModel } from "./monster-model";
 
 export interface LairModel {

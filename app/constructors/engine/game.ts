@@ -2,7 +2,6 @@ import { IGame, ICamera } from '../../models/game/engine/game';
 import { ICanvas } from '../../models/game/engine/canvas';
 import { Map } from './map';
 import { Player } from '../entitites/player';
-import { Monster } from '../entitites/monster';
 import { Controls } from './controls';
 import { Lair } from '../entitites/lair';
 import { MonsterModel } from '../../models/game/entities/monster-model';
@@ -148,7 +147,7 @@ export class GameConstructor implements IGame {
 
     // Draw lairs
     this.lairs.forEach(lair => {
-      lair.draw(this.canvas, this.camera);
+      lair.draw(this.canvas);
     });
 
     this.monsters.forEach(monster => {

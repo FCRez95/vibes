@@ -131,7 +131,6 @@ export class Map implements IMap {
   generateLairPatch(centerX: number, centerY: number): void {
     const lairSize = 20; // 5x5 tiles for the lair
     const halfSize = Math.floor(lairSize / 2);
-    const entranceWidth = 3; // Width of each entrance in tiles
 
     // Generate the dirt ground
     for (let y = -halfSize; y <= halfSize; y++) {

@@ -143,7 +143,7 @@ export class Lair implements LairModel {
         }
     }
 
-    draw(canvas: ICanvas, camera: { x: number; y: number }): void {
+    draw(canvas: ICanvas): void {
         // Draw monster count
         canvas.drawText(
             `${this.currentMonsters.length}/${this.maxMonsters}`,
