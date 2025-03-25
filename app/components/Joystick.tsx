@@ -151,8 +151,10 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
       >
         {/* Base circle */}
         <div className="absolute w-[100px] h-[100px] rounded-full bg-white/20" style={{
+            width: radius * 2,
+            height: radius * 2,
             left: position.x,
-            bottom: position.y
+            top: position.y,
         }}>
             {/* Knob */}
             <div 
