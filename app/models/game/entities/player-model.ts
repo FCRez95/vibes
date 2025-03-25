@@ -3,7 +3,15 @@ import { IPosition } from "../engine/position";
 import { IMap } from "../engine/map";
 import { MonsterModel } from "./monster-model";
 import { SkillsModel } from "./skill-model";
-import { WeaponModel, ArmorModel, ItemModel, AccessoryModel } from "./items-model";
+import { WeaponModel, ItemModel, HelmetModel, ChestplateModel, ShieldModel, LegsModel, BootsModel } from "./items-model";
+export interface EquippedItemsModel {
+    helmet: HelmetModel | null;
+    chestplate: ChestplateModel | null;
+    weapon: WeaponModel | null;
+    shield: ShieldModel | null;
+    legs: LegsModel | null;
+    boots: BootsModel | null;
+}
 
 export interface PlayerModel {
     id: string;
@@ -16,11 +24,7 @@ export interface PlayerModel {
     position: IPosition;
     skills: SkillsModel;
     inventory: ItemModel[];
-    equipment: {
-        weapon: WeaponModel | null;
-        armor: ArmorModel | null;
-        accessory: AccessoryModel | null;
-    };
+    equipment: EquippedItemsModel;
 
     isDead(): boolean;
     update(direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel): void;

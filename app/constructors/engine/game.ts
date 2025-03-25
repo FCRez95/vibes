@@ -33,7 +33,7 @@ export class GameConstructor implements IGame {
   initGame(): void {
     // Find a suitable starting position for the player
     const startPos = this.findWalkablePosition();
-    this.player = new Player(startPos.x, startPos.y, this.player.skills);
+    this.player = new Player(startPos.x, startPos.y, this.player.skills, this.player.inventory, this.player.equipment);
     
     // Camera position (top-left corner of the view)
     this.camera = {

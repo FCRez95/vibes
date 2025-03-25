@@ -5,6 +5,9 @@ import { CanvasManipulator } from './constructors/engine/canvas';
 import { GameConstructor } from './constructors/engine/game';
 import { GameControls } from './components/GameControls';
 import { Player } from './constructors/entitites/player';
+import { ItemModel } from './models/game/entities/items-model';
+import { EquippedItemsModel } from './models/game/entities/player-model';
+import { SkillsModel } from './models/game/entities/skill-model';
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -26,18 +29,31 @@ export default function Home() {
     }
 
     // Initialize game
-    const player = new Player(0, 0, {
+    const inventory: ItemModel[] = []
+    const equipment: EquippedItemsModel = {
+      helmet: { name: 'Tribal Helmet', type: 'helmet', defense: 1 },
+      chestplate: { name: 'Chief Chestplate', type: 'chestplate', defense: 1 },
+      weapon: { name: 'Divine Axe', type: 'weapon', damage: 1, weaponType: 'axe' },
+      shield: null,
+      legs: null,
+      boots: null,
+    }
+
+    const skills: SkillsModel = {
       running: { name: 'Running', level: 8, experience: 0, maxExperience: 100 },
       unarmed: { name: 'Unarmed', level: 1, experience: 0, maxExperience: 100 },
       axe: { name: 'Axe', level: 1, experience: 0, maxExperience: 100 },
       throwing: { name: 'Throwing', level: 1, experience: 0, maxExperience: 100 },
       bow: { name: 'Bow', level: 1, experience: 0, maxExperience: 100 },
       club: { name: 'Club', level: 1, experience: 0, maxExperience: 100 },
-      summoningMagic: { name: 'Summoning Magic', level: 1, experience: 0, maxExperience: 100 },
       elementalMagic: { name: 'Elemental Magic', level: 1, experience: 0, maxExperience: 100 },
       shammanMagic: { name: 'Shamman Magic', level: 1, experience: 0, maxExperience: 100 },
       natureMagic: { name: 'Nature Magic', level: 1, experience: 0, maxExperience: 100 },
-    });
+      summoningMagic: { name: 'Summoning Magic', level: 1, experience: 0, maxExperience: 100 },
+    }
+
+    const player = new Player(0, 0, skills, inventory, equipment);
+
     gameInstanceRef.current = new GameConstructor(canvas, player);
 
     // Set up game loop
@@ -161,6 +177,16 @@ export default function Home() {
         skills={() => {
           if (gameInstanceRef.current) {
             return gameInstanceRef.current.player.skills;
+          }
+        }}
+        inventory={() => {
+          if (gameInstanceRef.current) {
+            return gameInstanceRef.current.player.inventory;
+          }
+        }}
+        equipment={() => {
+          if (gameInstanceRef.current) {
+            return gameInstanceRef.current.player.equipment;
           }
         }}
       />

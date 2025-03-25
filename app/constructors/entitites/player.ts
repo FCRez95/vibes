@@ -1,10 +1,10 @@
 import { ICanvas } from "../../models/game/engine/canvas";
 import { IPosition } from "../../models/game/engine/position";
-import { PlayerModel } from "../../models/game/entities/player-model";
+import { PlayerModel, EquippedItemsModel } from "../../models/game/entities/player-model";
 import { IMap } from "../../models/game/engine/map";
 import { MonsterModel } from "../../models/game/entities/monster-model";
 import { SkillsModel } from "@/app/models/game/entities/skill-model";
-import { WeaponModel, ArmorModel, AccessoryModel, ItemModel } from "../../models/game/entities/items-model";
+import { WeaponModel, ItemModel, HelmetModel, ChestplateModel, ShieldModel, LegsModel, BootsModel } from "../../models/game/entities/items-model";
 
 export class Player implements PlayerModel {
   id: string;
@@ -17,15 +17,11 @@ export class Player implements PlayerModel {
   position: IPosition;
   skills: SkillsModel;
   inventory: ItemModel[];
-  equipment: {
-    weapon: WeaponModel | null;
-    armor: ArmorModel | null;
-    accessory: AccessoryModel | null;
-  };
+  equipment: EquippedItemsModel;
   attackCooldown: number; // Time between attacks in milliseconds
   lastAttackTime: number; // Timestamp of last attack
 
-  constructor(x: number = 0, y: number = 0, skills: SkillsModel) {
+  constructor(x: number = 0, y: number = 0, skills: SkillsModel, inventory: ItemModel[], equipment: EquippedItemsModel) {
     this.id = 'player-1';
     this.name = 'Player';
     this.maxHealth = 100;
@@ -41,12 +37,8 @@ export class Player implements PlayerModel {
     this.skills = skills;
 
     // Initialize inventory and equipment
-    this.inventory = [];
-    this.equipment = {
-      weapon: null,
-      armor: null,
-      accessory: null
-    };
+    this.inventory = inventory;
+    this.equipment = equipment;
   }
 
   isDead(): boolean {
@@ -57,10 +49,16 @@ export class Player implements PlayerModel {
     if (this.inventory.includes(item)) {
       if (item.type === 'weapon') {
         this.equipment.weapon = item as WeaponModel;
-      } else if (item.type === 'armor') {
-        this.equipment.armor = item as ArmorModel;
-      } else if (item.type === 'accessory') {
-        this.equipment.accessory = item as AccessoryModel;
+      } else if (item.type === 'helmet') {
+        this.equipment.helmet = item as HelmetModel;
+      } else if (item.type === 'chestplate') {
+        this.equipment.chestplate = item as ChestplateModel;
+      } else if (item.type === 'shield') {
+        this.equipment.shield = item as ShieldModel;
+      } else if (item.type === 'legs') {
+        this.equipment.legs = item as LegsModel;
+      } else if (item.type === 'boots') {
+        this.equipment.boots = item as BootsModel;
       }
     }
   }

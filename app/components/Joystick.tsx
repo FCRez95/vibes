@@ -134,7 +134,7 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
       {/* Joystick */}
       <div 
         ref={joystickRef}
-        className="fixed bottom-0 left-0 w-1/2 h-1/2"
+        className="fixed bottom-0 left-0 w-1/2 h-2/3"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -153,8 +153,8 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
         <div className="absolute w-[100px] h-[100px] rounded-full bg-white/20" style={{
             width: radius * 2,
             height: radius * 2,
-            left: position.x,
-            top: position.y,
+            left: 50,
+            bottom: 60,
         }}>
             {/* Knob */}
             <div 

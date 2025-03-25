@@ -1,7 +1,17 @@
 export interface ItemModel {
     name: string;
-    type: 'weapon' | 'armor' | 'accessory';
+    type: 'helmet' | 'chestplate' | 'weapon' | 'shield' | 'legs' | 'boots';
 } 
+
+export interface HelmetModel extends ItemModel {
+    name: string;
+    defense: number;
+}
+
+export interface ChestplateModel extends ItemModel {
+    name: string;
+    defense: number;
+}
 
 export interface WeaponModel extends ItemModel {
     name: string;
@@ -9,12 +19,17 @@ export interface WeaponModel extends ItemModel {
     damage: number;
 }
 
-export interface ArmorModel extends ItemModel {
+export interface ShieldModel extends ItemModel {
     name: string;
     defense: number;
 }
 
-export interface AccessoryModel extends ItemModel {
+export interface LegsModel extends ItemModel {
     name: string;
-    effect: string;
+    defense: number;
+}
+
+export interface BootsModel extends ItemModel {
+    name: string;
+    defense: number;
 }
