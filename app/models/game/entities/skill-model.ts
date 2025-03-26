@@ -16,4 +16,5 @@ export interface SkillsModel {
     elementalMagic: SkillModel;
     shammanMagic: SkillModel;
     natureMagic: SkillModel;
+    shield: SkillModel;
 }

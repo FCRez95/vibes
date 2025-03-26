@@ -13,7 +13,6 @@ export class Player implements PlayerModel {
   maxHealth: number;
   mana: number;
   maxMana: number;
-  experience: number;
   position: IPosition;
   skills: SkillsModel;
   inventory: ItemModel[];
@@ -28,7 +27,6 @@ export class Player implements PlayerModel {
     this.health = this.maxHealth;
     this.maxMana = 100;
     this.mana = this.maxMana;
-    this.experience = 0;
     this.position = { x, y };
     this.attackCooldown = 1000;
     this.lastAttackTime = 0;

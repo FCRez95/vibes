@@ -10,6 +10,7 @@ export class Map implements IMap {
   gridRows: number;
   gridCols: number;
   monsterLairs: { x: number; y: number, difficulty: string }[];
+  templePosition: { x: number; y: number };
   TERRAIN: ITerrainTypes;
   private seed: number = 16789; // Fixed seed for consistent map generation
 
@@ -23,12 +24,19 @@ export class Map implements IMap {
       WATER: { type: 'water', color: '#4FA4E8', walkable: false },
       DIRT: { type: 'dirt', color: '#8B4513', walkable: true },
       STONE: { type: 'stone', color: '#808080', walkable: false },
-      FOREST: { type: 'forest', color: '#006400', walkable: true }
+      FOREST: { type: 'forest', color: '#006400', walkable: true },
+      TEMPLE: { type: 'temple', color: '#DAA520', walkable: true } // Golden color for temple
     };
 
     this.gridRows = Math.floor(this.height / this.tileSize);
     this.gridCols = Math.floor(this.width / this.tileSize);
     this.monsterLairs = monsterLairs;
+    
+    // Set temple position in bottom left corner
+    this.templePosition = {
+      x: this.tileSize * 10, // 10 tiles from left edge
+      y: this.height - (this.tileSize * 11) // 11 tiles from bottom edge
+    };
 
     console.log('Map initialized with monster lairs:', this.monsterLairs);
     this.generateMap();
@@ -55,12 +63,17 @@ export class Map implements IMap {
     
     // Generate lairs for all monster lairs
     this.monsterLairs.forEach(lair => {
-      // Convert world coordinates to grid coordinates
       const gridX = Math.floor(lair.x / this.tileSize);
       const gridY = Math.floor(lair.y / this.tileSize);
       console.log(`Generating lair at grid coordinates: (${gridX}, ${gridY})`);
       this.generateLairPatch(gridX, gridY);
     });
+
+    // Generate temple
+    const templeGridX = Math.floor(this.templePosition.x / this.tileSize);
+    const templeGridY = Math.floor(this.templePosition.y / this.tileSize);
+    console.log(`Generating temple at grid coordinates: (${templeGridX}, ${templeGridY})`);
+    this.generateTemplePatch(templeGridX, templeGridY);
   }
 
   generateLakes(): void {
@@ -164,6 +177,41 @@ export class Map implements IMap {
     }
   }
 
+  generateTemplePatch(centerX: number, centerY: number): void {
+    const templeSize = 20; // Same size as lairs
+    const halfSize = Math.floor(templeSize / 2);
+
+    // Generate the temple ground
+    for (let y = -halfSize; y <= halfSize; y++) {
+      for (let x = -halfSize; x <= halfSize; x++) {
+        const mapX = centerX + x;
+        const mapY = centerY + y;
+        if (this.isInBounds(mapX, mapY)) {
+          this.grid[mapY][mapX] = { ...this.TERRAIN.TEMPLE };
+        }
+      }
+    }
+
+    // Generate temple walls
+    for (let y = -halfSize; y <= halfSize; y++) {
+      for (let x = -halfSize; x <= halfSize; x++) {
+        const mapX = centerX + x;
+        const mapY = centerY + y;
+        if (this.isInBounds(mapX, mapY)) {
+          // Only place walls on the edges
+          if (Math.abs(x) === halfSize || Math.abs(y) === halfSize) {
+            // Skip the entrance positions (top and right only)
+            if ((x >= -1 && x <= 1 && y === -halfSize) || // Top entrance
+                (x === halfSize && y >= -1 && y <= 1)) {  // Right entrance
+              continue;
+            }
+            this.grid[mapY][mapX] = { ...this.TERRAIN.STONE };
+          }
+        }
+      }
+    }
+  }
+
   isInBounds(x: number, y: number): boolean {
     return x >= 0 && x < this.gridCols && y >= 0 && y < this.gridRows;
   }
@@ -244,6 +292,14 @@ export class Map implements IMap {
     return {
       type: this.grid[tileY][tileX].type,
       walkable: this.grid[tileY][tileX].walkable
+    };
+  }
+
+  getTempleCenter(): { x: number; y: number } {
+
+    return {
+      x: this.templePosition.x + 10,
+      y: this.templePosition.y + 10
     };
   }
 } 

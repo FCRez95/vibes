@@ -13,6 +13,7 @@ export interface ITerrainTypes {
   DIRT: ITerrain;
   STONE: ITerrain;
   FOREST: ITerrain;
+  TEMPLE: ITerrain;
 }
 
 export interface IMap {
@@ -20,9 +21,11 @@ export interface IMap {
   height: number;
   tileSize: number;
   monsterLairs: { x: number; y: number, difficulty: string }[];
+  templePosition: { x: number; y: number };
 
   isWalkable(x: number, y: number): boolean;
   getTile(x: number, y: number): { type: string; walkable: boolean };
   draw(canvas: ICanvas, camera: { x: number; y: number }): void;
   drawMinimap(canvas: ICanvas, player: PlayerModel): void;
+  getTempleCenter(): { x: number; y: number };
 } 

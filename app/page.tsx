@@ -40,7 +40,7 @@ export default function Home() {
     }
 
     const skills: SkillsModel = {
-      running: { name: 'Running', level: 8, experience: 0, maxExperience: 100 },
+      running: { name: 'Running', level: 20, experience: 0, maxExperience: 100 },
       unarmed: { name: 'Unarmed', level: 1, experience: 0, maxExperience: 100 },
       axe: { name: 'Axe', level: 1, experience: 0, maxExperience: 100 },
       throwing: { name: 'Throwing', level: 1, experience: 0, maxExperience: 100 },
@@ -50,6 +50,7 @@ export default function Home() {
       shammanMagic: { name: 'Shamman Magic', level: 1, experience: 0, maxExperience: 100 },
       natureMagic: { name: 'Nature Magic', level: 1, experience: 0, maxExperience: 100 },
       summoningMagic: { name: 'Summoning Magic', level: 1, experience: 0, maxExperience: 100 },
+      shield: { name: 'Shield', level: 1, experience: 0, maxExperience: 100 },
     }
 
     const player = new Player(0, 0, skills, inventory, equipment);
@@ -67,84 +68,9 @@ export default function Home() {
     };
     gameLoop();
 
-    // Handle touch events
-    const handleTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (rect && gameInstanceRef.current) {
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        gameInstanceRef.current.handleTouchStart(x, y);
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (rect && gameInstanceRef.current) {
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        gameInstanceRef.current.handleTouchMove(x, y);
-      }
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      e.preventDefault();
-      if (gameInstanceRef.current) {
-        gameInstanceRef.current.handleTouchEnd();
-      }
-    };
-
-    canvasRef.current.addEventListener('touchstart', handleTouchStart);
-    canvasRef.current.addEventListener('touchmove', handleTouchMove);
-    canvasRef.current.addEventListener('touchend', handleTouchEnd);
-
-    // Add mouse event handlers
-    const handleMouseDown = (e: MouseEvent) => {
-      e.preventDefault();
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (rect && gameInstanceRef.current) {
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        gameInstanceRef.current.handleTouchStart(x, y);
-      }
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      e.preventDefault();
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (rect && gameInstanceRef.current) {
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        gameInstanceRef.current.handleTouchMove(x, y);
-      }
-    };
-
-    const handleMouseUp = (e: MouseEvent) => {
-      e.preventDefault();
-      if (gameInstanceRef.current) {
-        gameInstanceRef.current.handleTouchEnd();
-      }
-    };
-
-    canvasRef.current.addEventListener('mousedown', handleMouseDown);
-    canvasRef.current.addEventListener('mousemove', handleMouseMove);
-    canvasRef.current.addEventListener('mouseup', handleMouseUp);
-    canvasRef.current.addEventListener('mouseleave', handleMouseUp);
 
     // Cleanup
     return () => {
-      if (canvasRef.current) {
-        canvasRef.current.removeEventListener('touchstart', handleTouchStart);
-        canvasRef.current.removeEventListener('touchmove', handleTouchMove);
-        canvasRef.current.removeEventListener('touchend', handleTouchEnd);
-        canvasRef.current.removeEventListener('mousedown', handleMouseDown);
-        canvasRef.current.removeEventListener('mousemove', handleMouseMove);
-        canvasRef.current.removeEventListener('mouseup', handleMouseUp);
-        canvasRef.current.removeEventListener('mouseleave', handleMouseUp);
-      }
       cancelAnimationFrame(animationFrameId);
       gameInstanceRef.current = null;
     };

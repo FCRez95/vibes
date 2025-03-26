@@ -20,7 +20,6 @@ export interface PlayerModel {
     maxHealth: number;
     mana: number;
     maxMana: number;
-    experience: number;
     position: IPosition;
     skills: SkillsModel;
     inventory: ItemModel[];

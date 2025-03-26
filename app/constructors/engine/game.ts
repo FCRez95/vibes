@@ -1,11 +1,11 @@
 import { IGame, ICamera } from '../../models/game/engine/game';
 import { ICanvas } from '../../models/game/engine/canvas';
-import { Map } from './map';
+import { Map } from '../interface/map';
 import { Player } from '../entitites/player';
 import { Controls } from './controls';
 import { Lair } from '../entitites/lair';
 import { MonsterModel } from '../../models/game/entities/monster-model';
-import { lairPositions } from '../entitites/all-lairs';
+import { lairPositions } from '../interface/all-lairs';
 
 export class GameConstructor implements IGame {
   canvas: ICanvas;
@@ -31,9 +31,11 @@ export class GameConstructor implements IGame {
   }
 
   initGame(): void {
-    // Find a suitable starting position for the player
-    const startPos = this.findWalkablePosition();
-    this.player = new Player(startPos.x, startPos.y, this.player.skills, this.player.inventory, this.player.equipment);
+    // Get temple center position
+    const templeCenter = this.map.getTempleCenter();
+    console.log(templeCenter);
+    // Create player at temple center
+    this.player = new Player(templeCenter.x, templeCenter.y, this.player.skills, this.player.inventory, this.player.equipment);
     
     // Camera position (top-left corner of the view)
     this.camera = {
