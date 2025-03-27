@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 interface JoystickProps {
   onMove: (direction: { x: number; y: number }) => void;
@@ -62,7 +62,7 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
     handleMove(touch.clientX, touch.clientY);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchEnd = () => {
     handleEnd();
   };
 
@@ -74,11 +74,11 @@ export function Joystick({ onMove, onStart, onEnd }: JoystickProps) {
     handleMove(e.clientX, e.clientY);
   };
 
-  const handleMouseUp = (e: React.MouseEvent) => {
+  const handleMouseUp = () => {
     handleEnd();
   };
 
-  const handleMouseLeave = (e: React.MouseEvent) => {
+  const handleMouseLeave = () => {
     handleEnd();
   };
 

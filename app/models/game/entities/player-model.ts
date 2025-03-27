@@ -4,6 +4,7 @@ import { IMap } from "../engine/map";
 import { MonsterModel } from "./monster-model";
 import { SkillsModel } from "./skill-model";
 import { WeaponModel, ItemModel, HelmetModel, ChestplateModel, ShieldModel, LegsModel, BootsModel } from "./items-model";
+
 export interface EquippedItemsModel {
     helmet: HelmetModel | null;
     chestplate: ChestplateModel | null;
@@ -24,7 +25,8 @@ export interface PlayerModel {
     skills: SkillsModel;
     inventory: ItemModel[];
     equipment: EquippedItemsModel;
-
+    lastAttackTime: number;
+    
     isDead(): boolean;
     update(direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel): void;
     draw(canvas: ICanvas, camera: { x: number; y: number }): void;

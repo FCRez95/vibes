@@ -35,7 +35,19 @@ export class GameConstructor implements IGame {
     const templeCenter = this.map.getTempleCenter();
     console.log(templeCenter);
     // Create player at temple center
-    this.player = new Player(templeCenter.x, templeCenter.y, this.player.skills, this.player.inventory, this.player.equipment);
+    this.player = new Player(
+      templeCenter.x,
+      templeCenter.y,
+      this.player.name,
+      this.player.health,
+      this.player.maxHealth,
+      this.player.mana,
+      this.player.maxMana,
+      this.player.lastAttackTime,
+      this.player.skills,
+      this.player.inventory,
+      this.player.equipment
+    );
     
     // Camera position (top-left corner of the view)
     this.camera = {

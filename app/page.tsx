@@ -1,121 +1,116 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import { useEffect, useRef } from 'react';
-import { CanvasManipulator } from './constructors/engine/canvas';
-import { GameConstructor } from './constructors/engine/game';
-import { GameControls } from './components/GameControls';
-import { Player } from './constructors/entitites/player';
-import { ItemModel } from './models/game/entities/items-model';
-import { EquippedItemsModel } from './models/game/entities/player-model';
-import { SkillsModel } from './models/game/entities/skill-model';
+import { useState } from "react";
+import { signIn, signUp } from "./lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameInstanceRef = useRef<GameConstructor | null>(null);
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  useEffect(() => {
-    if (!canvasRef.current) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
 
-    // Set up canvas
-    const canvas = new CanvasManipulator(canvasRef.current);
-    
-    // Set canvas size to match container
-    const container = canvasRef.current.parentElement;
-    if (container) {
-      const rect = container.getBoundingClientRect();
-      canvas.resize(rect.width, rect.height);
-    } else {
-      canvas.resize(window.innerWidth-50, window.innerHeight-50);
-    }
+    try {
+      const { error } = isLogin 
+        ? await signIn(email, password)
+        : await signUp(email, password);
 
-    // Initialize game
-    const inventory: ItemModel[] = []
-    const equipment: EquippedItemsModel = {
-      helmet: { name: 'Tribal Helmet', type: 'helmet', defense: 1 },
-      chestplate: { name: 'Chief Chestplate', type: 'chestplate', defense: 1 },
-      weapon: { name: 'Divine Axe', type: 'weapon', damage: 1, weaponType: 'axe' },
-      shield: null,
-      legs: null,
-      boots: null,
-    }
-
-    const skills: SkillsModel = {
-      running: { name: 'Running', level: 20, experience: 0, maxExperience: 100 },
-      unarmed: { name: 'Unarmed', level: 1, experience: 0, maxExperience: 100 },
-      axe: { name: 'Axe', level: 1, experience: 0, maxExperience: 100 },
-      throwing: { name: 'Throwing', level: 1, experience: 0, maxExperience: 100 },
-      bow: { name: 'Bow', level: 1, experience: 0, maxExperience: 100 },
-      club: { name: 'Club', level: 1, experience: 0, maxExperience: 100 },
-      elementalMagic: { name: 'Elemental Magic', level: 1, experience: 0, maxExperience: 100 },
-      shammanMagic: { name: 'Shamman Magic', level: 1, experience: 0, maxExperience: 100 },
-      natureMagic: { name: 'Nature Magic', level: 1, experience: 0, maxExperience: 100 },
-      summoningMagic: { name: 'Summoning Magic', level: 1, experience: 0, maxExperience: 100 },
-      shield: { name: 'Shield', level: 1, experience: 0, maxExperience: 100 },
-    }
-
-    const player = new Player(0, 0, skills, inventory, equipment);
-
-    gameInstanceRef.current = new GameConstructor(canvas, player);
-
-    // Set up game loop
-    let animationFrameId: number;
-    const gameLoop = () => {
-      if (gameInstanceRef.current) {
-        gameInstanceRef.current.update();
-        gameInstanceRef.current.draw();
+      if (error) throw error;
+      
+      if (isLogin) {
+        router.push('/account'); // Redirect to dashboard after successful auth
+      } else {
+        setEmail("");
+        setPassword("");
+        setIsLogin(true);
       }
-      animationFrameId = requestAnimationFrame(gameLoop);
-    };
-    gameLoop();
-
-
-    // Cleanup
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      gameInstanceRef.current = null;
-    };
-  }, []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <main className="w-full h-full flex justify-center items-center overflow-hidden">
-      <canvas ref={canvasRef} className="border border-gray-300" />
-      <GameControls 
-        onAttackClick={() => {
-          if (gameInstanceRef.current) {
-            gameInstanceRef.current.controls.handleAttackClick();  
-          }
-        }} 
-        onJoystickMove={(direction) => {
-          if (gameInstanceRef.current) {
-            gameInstanceRef.current.controls.handleJoystickMove(direction);
-          }
-        }} 
-        onJoystickStart={() => {
-          if (gameInstanceRef.current) {
-            gameInstanceRef.current.controls.handleJoystickStart();
-          }
-        }} 
-        onJoystickEnd={() => {
-          if (gameInstanceRef.current) {
-            gameInstanceRef.current.controls.handleJoystickEnd();
-          }
-        }}
-        skills={() => {
-          if (gameInstanceRef.current) {
-            return gameInstanceRef.current.player.skills;
-          }
-        }}
-        inventory={() => {
-          if (gameInstanceRef.current) {
-            return gameInstanceRef.current.player.inventory;
-          }
-        }}
-        equipment={() => {
-          if (gameInstanceRef.current) {
-            return gameInstanceRef.current.player.equipment;
-          }
-        }}
-      />
-    </main>
-  );  
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            {isLogin ? 'Sign in to your account' : 'Create your account'}
+          </h2>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="email-address" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="email-address"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-red-500 text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            >
+              {loading ? 'Processing...' : (isLogin ? 'Sign in' : 'Sign up')}
+            </button>
+          </div>
+        </form>
+
+        <div className="text-center">
+          <button
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-indigo-600 hover:text-indigo-500"
+          >
+            {isLogin
+              ? "Don't have an account? Sign up"
+              : "Already have an account? Sign in"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

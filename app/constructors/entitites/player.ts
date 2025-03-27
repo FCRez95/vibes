@@ -20,16 +20,28 @@ export class Player implements PlayerModel {
   attackCooldown: number; // Time between attacks in milliseconds
   lastAttackTime: number; // Timestamp of last attack
 
-  constructor(x: number = 0, y: number = 0, skills: SkillsModel, inventory: ItemModel[], equipment: EquippedItemsModel) {
+  constructor(
+    x: number,
+    y: number, 
+    name: string,
+    health: number,
+    maxHealth: number,
+    mana: number,
+    maxMana: number,
+    lastAttackTime: number,
+    skills: SkillsModel,
+    inventory: ItemModel[],
+    equipment: EquippedItemsModel
+  ) {
     this.id = 'player-1';
-    this.name = 'Player';
-    this.maxHealth = 100;
-    this.health = this.maxHealth;
-    this.maxMana = 100;
-    this.mana = this.maxMana;
+    this.name = name;
+    this.maxHealth = maxHealth;
+    this.health = health;
+    this.maxMana = maxMana;
+    this.mana = mana;
     this.position = { x, y };
     this.attackCooldown = 1000;
-    this.lastAttackTime = 0;
+    this.lastAttackTime = lastAttackTime;
 
     // Initialize stats
     this.skills = skills;
