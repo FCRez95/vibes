@@ -1,6 +1,11 @@
 import { IMap, ITerrain, ITerrainTypes } from '../../models/game/engine/map';
 import { ICanvas } from '../../models/game/engine/canvas';
 import { PlayerModel } from '../../models/game/entities/player-model';
+import grassImage from '../../../public/assets/terrain/grass.png';
+import dirtImage from '../../../public/assets/terrain/dirt.png';
+import stoneImage from '../../../public/assets/terrain/rocks.png';
+import waterImage from '../../../public/assets/terrain/water.png';
+import templeImage from '../../../public/assets/terrain/sand.png';
 
 export class Map implements IMap {
   width: number;
@@ -13,18 +18,27 @@ export class Map implements IMap {
   templePosition: { x: number; y: number };
   TERRAIN: ITerrainTypes;
   private seed: number = 16789; // Fixed seed for consistent map generation
+  private grassImage: HTMLImageElement;
+  private grassImageLoaded: boolean = false;
+  private dirtImage: HTMLImageElement;
+  private dirtImageLoaded: boolean = false;
+  private stoneImage: HTMLImageElement;
+  private stoneImageLoaded: boolean = false;
+  private waterImage: HTMLImageElement;
+  private waterImageLoaded: boolean = false;
+  private templeImage: HTMLImageElement;
+  private templeImageLoaded: boolean = false;
 
   constructor(width: number, height: number, monsterLairs: { x: number; y: number, difficulty: string }[]) {
     this.width = width;
     this.height = height;
-    this.tileSize = 15;
+    this.tileSize = 64;
 
     this.TERRAIN = {
       GRASS: { type: 'grass', color: '#90EE90', walkable: true },
       WATER: { type: 'water', color: '#4FA4E8', walkable: false },
       DIRT: { type: 'dirt', color: '#8B4513', walkable: true },
-      STONE: { type: 'stone', color: '#808080', walkable: false },
-      FOREST: { type: 'forest', color: '#006400', walkable: true },
+      STONE: { type: 'stone', color: '#808080', walkable: true },
       TEMPLE: { type: 'temple', color: '#DAA520', walkable: true } // Golden color for temple
     };
 
@@ -37,6 +51,31 @@ export class Map implements IMap {
       x: this.tileSize * 10, // 10 tiles from left edge
       y: this.height - (this.tileSize * 11) // 11 tiles from bottom edge
     };
+
+    // Load grass image
+    this.grassImage = new Image();
+    this.grassImage.src = grassImage.src;
+    this.grassImageLoaded = true;
+
+    // Load dirt image
+    this.dirtImage = new Image();
+    this.dirtImage.src = dirtImage.src;
+    this.dirtImageLoaded = true;
+
+    // Load stone image
+    this.stoneImage = new Image();
+    this.stoneImage.src = stoneImage.src;
+    this.stoneImageLoaded = true;
+
+    // Load water image
+    this.waterImage = new Image();
+    this.waterImage.src = waterImage.src;
+    this.waterImageLoaded = true;
+
+    // Load temple image
+    this.templeImage = new Image();
+    this.templeImage.src = templeImage.src;
+    this.templeImageLoaded = true;
 
     console.log('Map initialized with monster lairs:', this.monsterLairs);
     this.generateMap();
@@ -77,10 +116,10 @@ export class Map implements IMap {
   }
 
   generateLakes(): void {
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 10; i++) {
       const centerX = Math.floor(this.seededRandom() * (this.gridCols - 20)) + 10;
       const centerY = Math.floor(this.seededRandom() * (this.gridRows - 20)) + 10;
-      const lakeSize = Math.floor(this.seededRandom() * 5) + 15; // Random size between 5 and 10
+      const lakeSize = Math.floor(this.seededRandom() * 5) + 7; // Random size between 5 and 10
 
       for (let y = -lakeSize; y <= lakeSize; y++) {
         for (let x = -lakeSize; x <= lakeSize; x++) {
@@ -100,7 +139,7 @@ export class Map implements IMap {
   }
 
   generateTerrainPatches(): void {
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 20; i++) {
       const x = Math.floor(this.seededRandom() * this.gridCols);
       const y = Math.floor(this.seededRandom() * this.gridRows);
       const radius = Math.floor(this.seededRandom() * 8) + 8; // Random size between 4 and 12
@@ -108,14 +147,11 @@ export class Map implements IMap {
       // Randomly select terrain type with different probabilities
       const terrainType = this.seededRandom();
       let terrain: ITerrain;
-      if (terrainType < 0.3) {
+      if (terrainType < 0.5) {
         terrain = this.TERRAIN.DIRT;
-      } else if (terrainType < 0.5) {
-        terrain = this.TERRAIN.STONE;
       } else {
-        terrain = this.TERRAIN.FOREST;
+        terrain = this.TERRAIN.STONE;
       }
-
       this.generatePatch(x, y, radius, terrain);
     }
   }
@@ -142,7 +178,7 @@ export class Map implements IMap {
   }
 
   generateLairPatch(centerX: number, centerY: number): void {
-    const lairSize = 20; // 5x5 tiles for the lair
+    const lairSize = 7; // 5x5 tiles for the lair
     const halfSize = Math.floor(lairSize / 2);
 
     // Generate the dirt ground
@@ -232,9 +268,55 @@ export class Map implements IMap {
     for (let y = startY; y < startY + tilesY; y++) {
       for (let x = startX; x < startX + tilesX; x++) {
         if (this.isInBounds(x, y)) {
-          const screenX = x * this.tileSize - camera.x;
-          const screenY = y * this.tileSize - camera.y;
-          canvas.drawRect(screenX, screenY, this.tileSize, this.tileSize, this.grid[y][x].color);
+          const screenX = Math.round(x * this.tileSize - camera.x);
+          const screenY = Math.round(y * this.tileSize - camera.y);
+          const tile = this.grid[y][x];
+          
+          // Use the appropriate image based on tile type
+          if (tile.type === 'grass' && this.grassImageLoaded) {
+            canvas.drawImage(
+              this.grassImage,
+              screenX,
+              screenY,
+              this.tileSize,
+              this.tileSize
+            );
+          } else if (tile.type === 'dirt' && this.dirtImageLoaded) {
+            canvas.drawImage(
+              this.dirtImage,
+              screenX,
+              screenY,
+              this.tileSize,
+              this.tileSize
+            );
+          } else if (tile.type === 'stone' && this.stoneImageLoaded) {
+            canvas.drawImage(
+              this.stoneImage,
+              screenX,
+              screenY,
+              this.tileSize,
+              this.tileSize
+            );
+          } else if (tile.type === 'water' && this.waterImageLoaded) {
+            canvas.drawImage(
+              this.waterImage,
+              screenX,
+              screenY,
+              this.tileSize,
+              this.tileSize
+            );
+          } else if (tile.type === 'temple' && this.templeImageLoaded) {
+            canvas.drawImage(
+              this.templeImage,
+              screenX,
+              screenY,
+              this.tileSize,
+              this.tileSize
+            );
+          } else {
+            // Fallback to colored rectangle if image not available
+            canvas.drawRect(screenX, screenY, this.tileSize, this.tileSize, tile.color);
+          }
         }
       }
     }
@@ -249,13 +331,55 @@ export class Map implements IMap {
 
     for (let y = 0; y < this.grid.length; y++) {
       for (let x = 0; x < this.grid[y].length; x++) {
-        canvas.drawRect(
-          10 + x * this.tileSize * scale,
-          10 + y * this.tileSize * scale,
-          this.tileSize * scale,
-          this.tileSize * scale,
-          this.grid[y][x].color
-        );
+        const tile = this.grid[y][x];
+        const screenX = 10 + x * this.tileSize * scale;
+        const screenY = 10 + y * this.tileSize * scale;
+        const tileWidth = this.tileSize * scale;
+        const tileHeight = this.tileSize * scale;
+        
+        // Use the appropriate image for the minimap based on tile type
+        if (tile.type === 'grass' && this.grassImageLoaded) {
+          canvas.drawImage(
+            this.grassImage,
+            Math.round(screenX),
+            Math.round(screenY),
+            Math.round(tileWidth),
+            Math.round(tileHeight)
+          );
+        } else if (tile.type === 'dirt' && this.dirtImageLoaded) {
+          canvas.drawImage(
+            this.dirtImage,
+            Math.round(screenX),
+            Math.round(screenY),
+            Math.round(tileWidth),
+            Math.round(tileHeight)
+          );
+        } else if (tile.type === 'stone' && this.stoneImageLoaded) {
+          canvas.drawImage(
+            this.stoneImage,
+            Math.round(screenX),
+            Math.round(screenY),
+            Math.round(tileWidth),
+            Math.round(tileHeight)
+          );
+        } else if (tile.type === 'water' && this.waterImageLoaded) {
+          canvas.drawImage(
+            this.waterImage,
+            Math.round(screenX),
+            Math.round(screenY),
+            Math.round(tileWidth),
+            Math.round(tileHeight)
+          );
+        } else {
+          // Fallback to colored rectangle
+          canvas.drawRect(
+            screenX,
+            screenY,
+            tileWidth,
+            tileHeight,
+            tile.color
+          );
+        }
       }
     }
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Joystick } from './Joystick';
 import { SkillsModal } from './SkillsModal';
 import { EquipmentModal } from './EquipmentModal';
+import { ExitButton } from './ExitButton';
 import { SkillsModel } from '../models/game/entities/skill-model';
 import { ItemModel } from '../models/game/entities/items-model';
 import { EquippedItemsModel } from '../models/game/entities/player-model';
@@ -11,6 +12,7 @@ interface GameControlsProps {
   onJoystickMove: (direction: { x: number; y: number }) => void;
   onJoystickStart: () => void;
   onJoystickEnd: () => void;
+  onSaveGameState: () => Promise<boolean>;
   skills: () => SkillsModel | undefined;
   inventory: () => ItemModel[] | undefined;
   equipment: () => EquippedItemsModel | undefined;
@@ -21,6 +23,7 @@ export function GameControls({
   onJoystickMove,
   onJoystickStart,
   onJoystickEnd,
+  onSaveGameState,
   skills,
   inventory,
   equipment
@@ -44,6 +47,7 @@ export function GameControls({
             >
                 <span role="img" aria-label="equipment">🎒</span>
             </button>
+            <ExitButton onSaveGameState={onSaveGameState} />
         </div>
         <div className="pointer-events-auto">
           <Joystick 

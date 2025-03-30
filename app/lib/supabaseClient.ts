@@ -110,7 +110,7 @@ export const createCharacter = async (userId: string, name: string) => {
         max_mana: 100,
         position_x: 0,
         position_y: 0,
-        last_attack_time: new Date().toISOString()
+        last_attack_time: 0
       }
     ])
     .select();
@@ -164,5 +164,37 @@ export const fetchCharacter = async (characterId: string) => {
     .from('Player')
     .select('*, skills(*), equipped_items(*), inventory(*)')
     .eq('id', characterId);
+  return { data, error };
+}
+
+export const updateCharacter = async (
+  characterId: string, 
+  characterData: {
+    health: number,
+    max_health: number,
+    mana: number,
+    max_mana: number,
+    position_x: number,
+    position_y: number,
+    last_attack_time: number
+  }
+) => {
+  const { data, error } = await supabase
+    .from('Player')
+    .update(characterData)
+    .eq('id', characterId)
+    .select();
+  return { data, error };
+}
+
+export const updateCharacterSkills = async (
+  playerId: string,
+  skillsData: Partial<Skills>
+) => {
+  const { data, error } = await supabase
+    .from('skills')
+    .update(skillsData)
+    .eq('player_id', playerId)
+    .select();
   return { data, error };
 }

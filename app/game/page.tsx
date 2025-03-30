@@ -8,10 +8,11 @@ import { Player } from '../constructors/entitites/player';
 import { ItemModel } from '../models/game/entities/items-model';
 import { EquippedItemsModel } from '../models/game/entities/player-model';
 import { SkillsModel } from '../models/game/entities/skill-model';
-import router from 'next/router';
-import { Character, fetchCharacter } from '../lib/supabaseClient';
+import { useRouter } from 'next/navigation';
+import { Character, fetchCharacter, updateCharacter, updateCharacterSkills } from '../lib/supabaseClient';
 
 export default function GamePage() {
+  const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameInstanceRef = useRef<GameConstructor | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<Character | null>(null);
@@ -32,7 +33,77 @@ export default function GamePage() {
      }
      fetchCharacterInfo();
  
-  }, []);
+  }, [router]);
+
+  // Function to save game state and character progress
+  const saveGameState = async (): Promise<boolean> => {
+    try {
+      if (!gameInstanceRef.current || !selectedPlayer) {
+        console.error('Game instance or player not available');
+        return false;
+      }
+
+      const player = gameInstanceRef.current.player;
+      
+      // Save player position, health, mana, etc.
+      const characterData = {
+        health: Math.floor(player.health),
+        max_health: Math.floor(player.maxHealth),
+        mana: Math.floor(player.mana),
+        max_mana: Math.floor(player.maxMana),
+        position_x: Math.floor(player.position.x),
+        position_y: Math.floor(player.position.y),
+        last_attack_time: 0
+      };
+      
+      // Save skills
+      const skillsData = {
+        running: player.skills.running.level,
+        running_exp: player.skills.running.experience,
+        unarmed: player.skills.unarmed.level,
+        unarmed_exp: player.skills.unarmed.experience,
+        axe: player.skills.axe.level,
+        axe_exp: player.skills.axe.experience,
+        throwing: player.skills.throwing.level,
+        throwing_exp: player.skills.throwing.experience,
+        bow: player.skills.bow.level,
+        bow_exp: player.skills.bow.experience,
+        club: player.skills.club.level,
+        club_exp: player.skills.club.experience,
+        elemental_magic: player.skills.elementalMagic.level,
+        elemental_magic_exp: player.skills.elementalMagic.experience,
+        nature_magic: player.skills.natureMagic.level,
+        nature_magic_exp: player.skills.natureMagic.experience,
+        summoning_magic: player.skills.summoningMagic.level,
+        summoning_magic_exp: player.skills.summoningMagic.experience,
+        shamman_magic: player.skills.shammanMagic.level,
+        shamman_magic_exp: player.skills.shammanMagic.experience,
+        shield: player.skills.shield.level,
+        shield_exp: player.skills.shield.experience
+      };
+      
+      // Update character data
+      const { error: characterError } = await updateCharacter(selectedPlayer.id, characterData);
+      if (characterError) {
+        console.log('Character data', characterData);
+        console.error('Error updating character:', characterError);
+        return false;
+      }
+      
+      // Update skills
+      const { error: skillsError } = await updateCharacterSkills(selectedPlayer.id, skillsData);
+      if (skillsError) {
+        console.error('Error updating skills:', skillsError);
+        return false;
+      }
+      
+      console.log('Game state saved successfully');
+      return true;
+    } catch (error) {
+      console.error('Error saving game state:', error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     console.log('here', selectedPlayer);
@@ -138,6 +209,7 @@ export default function GamePage() {
             gameInstanceRef.current.controls.handleJoystickEnd();
           }
         }}
+        onSaveGameState={saveGameState}
         skills={() => {
           if (gameInstanceRef.current) {
             return gameInstanceRef.current.player.skills;

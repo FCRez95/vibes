@@ -24,20 +24,18 @@ export class GameConstructor implements IGame {
     this.lairs = [];
     this.camera = { x: 0, y: 0 };
     this.player = player;
-    this.map = new Map(6000, 6000, lairPositions);
+    this.map = new Map(10000, 10000, lairPositions);
     this.controls = new Controls(canvas);
     
     this.initGame();
   }
 
   initGame(): void {
-    // Get temple center position
-    const templeCenter = this.map.getTempleCenter();
-    console.log(templeCenter);
+    // Get temple center position: x 160, y 5845
     // Create player at temple center
     this.player = new Player(
-      templeCenter.x,
-      templeCenter.y,
+      this.player.position.x,
+      this.player.position.y,
       this.player.name,
       this.player.health,
       this.player.maxHealth,

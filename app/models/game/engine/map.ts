@@ -12,7 +12,6 @@ export interface ITerrainTypes {
   WATER: ITerrain;
   DIRT: ITerrain;
   STONE: ITerrain;
-  FOREST: ITerrain;
   TEMPLE: ITerrain;
 }
 
