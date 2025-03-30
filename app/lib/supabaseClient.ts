@@ -31,8 +31,8 @@ export interface Skills {
 }
 
 export interface EquippedItems {
-  id: string;
-  player_id: string;
+  id: number;
+  player_id: number;
   head: string;
   chest: string;
   legs: string;
@@ -42,14 +42,14 @@ export interface EquippedItems {
 }
 
 export interface Inventory {
-  id: string;
-  item_id: string;
-  player_id: string;
+  id: number;
+  item_id: number;
+  player_id: number;
   quantity: number;
 }
 
 export interface Character {
-  id: string;
+  id: number;
   name: string;
   health: number;
   max_health: number;
@@ -58,6 +58,7 @@ export interface Character {
   position_x: number;
   position_y: number;
   last_attack_time: number;
+  online: boolean;
   skills?: Skills[];
   equipped_items?: EquippedItems[];
   inventory?: Inventory[];
@@ -117,7 +118,7 @@ export const createCharacter = async (userId: string, name: string) => {
   return { data, error };
 }
 
-export const deleteCharacter = async (characterId: string) => {
+export const deleteCharacter = async (characterId: number) => {
   const { error } = await supabase
     .from('Player')
     .delete()
@@ -125,7 +126,7 @@ export const deleteCharacter = async (characterId: string) => {
   return { error };
 }
 
-export const createCharacterSkills = async (playerId: string) => {
+export const createCharacterSkills = async (playerId: number) => {
   const { data, error } = await supabase
     .from('skills')
     .insert([
@@ -159,7 +160,7 @@ export const createCharacterSkills = async (playerId: string) => {
   return { data, error };
 }
 
-export const fetchCharacter = async (characterId: string) => {
+export const fetchCharacter = async (characterId: number) => {
   const { data, error } = await supabase
     .from('Player')
     .select('*, skills(*), equipped_items(*), inventory(*)')
@@ -168,7 +169,7 @@ export const fetchCharacter = async (characterId: string) => {
 }
 
 export const updateCharacter = async (
-  characterId: string, 
+  characterId: number, 
   characterData: {
     health: number,
     max_health: number,
@@ -188,7 +189,7 @@ export const updateCharacter = async (
 }
 
 export const updateCharacterSkills = async (
-  playerId: string,
+  playerId: number,
   skillsData: Partial<Skills>
 ) => {
   const { data, error } = await supabase
@@ -196,5 +197,13 @@ export const updateCharacterSkills = async (
     .update(skillsData)
     .eq('player_id', playerId)
     .select();
+  return { data, error };
+}
+
+export const fetchOnlineCharacters = async () => {
+  const { data, error } = await supabase
+    .from('Player')
+    .select('*, skills(*), equipped_items(*), inventory(*)')
+    .eq('online', true);
   return { data, error };
 }

@@ -38,7 +38,7 @@ export class Map implements IMap {
       GRASS: { type: 'grass', color: '#90EE90', walkable: true },
       WATER: { type: 'water', color: '#4FA4E8', walkable: false },
       DIRT: { type: 'dirt', color: '#8B4513', walkable: true },
-      STONE: { type: 'stone', color: '#808080', walkable: true },
+      STONE: { type: 'stone', color: '#808080', walkable: false },
       TEMPLE: { type: 'temple', color: '#DAA520', walkable: true } // Golden color for temple
     };
 

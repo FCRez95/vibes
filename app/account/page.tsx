@@ -55,7 +55,7 @@ export default function AccountPage() {
     }
   };
 
-  const handleDeleteCharacter = async (characterId: string) => {
+  const handleDeleteCharacter = async (characterId: number) => {
     try {
       const { error } = await deleteCharacter(characterId);
       if (error) throw error;

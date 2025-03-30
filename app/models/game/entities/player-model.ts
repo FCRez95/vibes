@@ -15,7 +15,7 @@ export interface EquippedItemsModel {
 }
 
 export interface PlayerModel {
-    id: string;
+    id: number;
     name: string;
     health: number;
     maxHealth: number;
@@ -26,6 +26,7 @@ export interface PlayerModel {
     inventory: ItemModel[];
     equipment: EquippedItemsModel;
     lastAttackTime: number;
+    online: boolean;
     
     isDead(): boolean;
     update(direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel): void;

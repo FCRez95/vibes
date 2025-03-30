@@ -1,30 +1,5 @@
 # Vibing Game Todo List
 
-## Authentication System
-- [x] Create Account Page
-  - [x] Design and implement account creation form
-  - [x] Add email validation
-  - [x] Add password requirements
-  - [x] Implement account creation API endpoint
-  - [x] Add error handling and success messages
-  - [x] Add redirect to login after successful account creation
-
-- [x] Login Page
-  - [x] Design and implement login form
-  - [x] Add "Remember me" functionality
-  - [x] Implement login API endpoint
-  - [x] Add error handling and success messages
-  - [x] Add redirect to account page after successful login
-  - [x] Implement session management
-
-## Character Management
-- [x] Character Selection Page
-  - [x] Design and implement character selection UI
-  - [x] Display existing characters
-  - [x] Add "Create New Character" button
-  - [x] Add character deletion option
-  - [x] Implement character selection logic
-
 - [ ] New Character Creation
   - [x] Design and implement character creation form
   - [ ] Add character name validation
@@ -32,20 +7,6 @@
   - [x] Set initial character stats
   - [x] Implement character creation API endpoint
   - [x] Add error handling and success messages
-
-## Game Flow
-- [x] Game Initialization
-  - [x] Load selected character data
-  - [x] Initialize game state with character data
-  - [x] Set up camera at temple center
-  - [x] Initialize player position at temple center
-
-- [x] Game Exit
-  - [x] Add exit game button/option
-  - [x] Implement save game state
-  - [x] Save character progress
-  - [x] Handle cleanup of game resources
-  - [x] Redirect to character selection
 
 ## Data Persistence
 - [ ] Character Data Storage

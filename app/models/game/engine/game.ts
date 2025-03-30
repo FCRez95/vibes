@@ -14,6 +14,7 @@ export interface IGame {
   canvas: ICanvas;
   map: IMap;
   player: PlayerModel;
+  onlinePlayers: PlayerModel[] | null;
   camera: ICamera;
   monsters: MonsterModel[];
   controls: ControlsModel;
@@ -22,7 +23,6 @@ export interface IGame {
   initGame(): void;
   update(): void;
   draw(): void;
-  findWalkablePosition(preferredX?: number, preferredY?: number): { x: number; y: number };
   handleTouchStart(x: number, y: number): void;
   handleTouchMove(x: number, y: number): void;
   handleTouchEnd(): void;

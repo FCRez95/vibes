@@ -5,9 +5,10 @@ import { IMap } from "../../models/game/engine/map";
 import { MonsterModel } from "../../models/game/entities/monster-model";
 import { SkillsModel } from "@/app/models/game/entities/skill-model";
 import { WeaponModel, ItemModel, HelmetModel, ChestplateModel, ShieldModel, LegsModel, BootsModel } from "../../models/game/entities/items-model";
+import { updateCharacter } from "../../lib/supabaseClient";
 
 export class Player implements PlayerModel {
-  id: string;
+  id: number;
   name: string;
   health: number;
   maxHealth: number;
@@ -19,8 +20,13 @@ export class Player implements PlayerModel {
   equipment: EquippedItemsModel;
   attackCooldown: number; // Time between attacks in milliseconds
   lastAttackTime: number; // Timestamp of last attack
+  online: boolean;
+  private lastUpdateTime: number = 0;
+  private readonly UPDATE_INTERVAL: number = 100; // Update database every 100ms
+  private positionChanged: boolean = false;
 
   constructor(
+    id: number,
     x: number,
     y: number, 
     name: string,
@@ -29,19 +35,22 @@ export class Player implements PlayerModel {
     mana: number,
     maxMana: number,
     lastAttackTime: number,
+    online: boolean,
     skills: SkillsModel,
     inventory: ItemModel[],
     equipment: EquippedItemsModel
   ) {
-    this.id = 'player-1';
+    this.id = id;
     this.name = name;
     this.maxHealth = maxHealth;
     this.health = health;
     this.maxMana = maxMana;
     this.mana = mana;
     this.position = { x, y };
+    this.online = online;
     this.attackCooldown = 1000;
     this.lastAttackTime = lastAttackTime;
+    this.lastUpdateTime = Date.now();
 
     // Initialize stats
     this.skills = skills;
@@ -97,7 +106,7 @@ export class Player implements PlayerModel {
       damage = weapon.damage * (1 + this.skills[weapon.weaponType as keyof SkillsModel].level / 50) || 0;
 
       // Gain experience in the corresponding skill
-      this.gainSkillExperience(weapon.weaponType as keyof SkillsModel, 1);
+      this.gainSkillExperience(weapon.weaponType as keyof SkillsModel, 5);
     } else {
       damage = this.skills.unarmed.level;
 
@@ -134,32 +143,71 @@ export class Player implements PlayerModel {
     }
   }
 
+  // Update player state in database
+  private async updatePlayerState(): Promise<void> {
+    const now = Date.now();
+    
+    // Only update if position changed and enough time has passed
+    if (this.positionChanged && now - this.lastUpdateTime >= this.UPDATE_INTERVAL) {
+      try {
+        const characterData = {
+          health: Math.round(this.health),
+          max_health: Math.round(this.maxHealth),
+          mana: Math.round(this.mana),
+          max_mana: Math.round(this.maxMana),
+          position_x: Math.round(this.position.x),
+          position_y: Math.round(this.position.y),
+          last_attack_time: this.lastAttackTime
+        };
+
+        const { error } = await updateCharacter(this.id, characterData);
+        if (error) {
+          console.error('Failed to update player state:', error);
+        } else {
+          this.lastUpdateTime = now;
+          this.positionChanged = false;
+        }
+      } catch (error) {
+        console.error('Error updating player state:', error);
+      }
+    }
+  }
+
+  // All user actions are handled here
   update(direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel | null): void {
+    const oldX = this.position.x;
+    const oldY = this.position.y;
+
     // Calculate new position
     const speed = this.skills.running.level;
     const newX = this.position.x + direction.x * speed;
     const newY = this.position.y + direction.y * speed;
 
-    // Check if new position is walkable  and not colliding with monsters
+    // Check if new position is walkable and not colliding with monsters
     if (map.isWalkable(newX, newY) && !this.checkCollision(newX, newY, monsters)) {
       this.position.x = newX;
       this.position.y = newY;
+
+      // Check if position actually changed
+      if (oldX !== newX || oldY !== newY) {
+        this.positionChanged = true;
+        this.updatePlayerState(); // Update database with new position
+      }
     }
 
     // Keep player within map bounds
     this.position.x = Math.max(0, Math.min(this.position.x, map.width));
     this.position.y = Math.max(0, Math.min(this.position.y, map.height));
 
-     // Attack if in range
-     // Calculate distance to monster
-     if (selectedMonster) {
+    // Attack if in range
+    if (selectedMonster) {
       const dxToMonster = selectedMonster.position.x - this.position.x;
       const dyToMonster = selectedMonster.position.y - this.position.y;
       const distanceToMonster = Math.sqrt(dxToMonster * dxToMonster + dyToMonster * dyToMonster);
       if (distanceToMonster <= this.getAttackRange()) {
         this.attack(selectedMonster);
       }
-     }
+    }
   }
 
   private checkCollision(x: number, y: number, monsters: MonsterModel[]): boolean {

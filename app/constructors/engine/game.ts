@@ -12,41 +12,27 @@ export class GameConstructor implements IGame {
   isGameOver: boolean;
   map: Map;
   player: Player;
+  onlinePlayers: Player[] | null;
   camera: ICamera;
   monsters: MonsterModel[];
   lairs: Lair[];
   controls: Controls;
 
-  constructor(canvas: ICanvas, player: Player) {
+  constructor(canvas: ICanvas, player: Player, onlinePlayers: Player[] | null) {
     this.canvas = canvas;
     this.isGameOver = false;
     this.monsters = [];
     this.lairs = [];
     this.camera = { x: 0, y: 0 };
     this.player = player;
+    this.onlinePlayers = onlinePlayers;
     this.map = new Map(10000, 10000, lairPositions);
     this.controls = new Controls(canvas);
     
     this.initGame();
   }
 
-  initGame(): void {
-    // Get temple center position: x 160, y 5845
-    // Create player at temple center
-    this.player = new Player(
-      this.player.position.x,
-      this.player.position.y,
-      this.player.name,
-      this.player.health,
-      this.player.maxHealth,
-      this.player.mana,
-      this.player.maxMana,
-      this.player.lastAttackTime,
-      this.player.skills,
-      this.player.inventory,
-      this.player.equipment
-    );
-    
+  initGame(): void {   
     // Camera position (top-left corner of the view)
     this.camera = {
       x: this.player.position.x - this.canvas.canvas.width / 2,
@@ -74,35 +60,6 @@ export class GameConstructor implements IGame {
         }
       }
     });
-  }
-
-  findWalkablePosition(preferredX?: number, preferredY?: number): { x: number; y: number } {
-    if (preferredX !== undefined && preferredY !== undefined) {
-      if (this.map.isWalkable(preferredX, preferredY)) {
-        return { x: preferredX, y: preferredY };
-      }
-    }
-
-    const x = preferredX || this.map.width / 2;
-    const y = preferredY || this.map.height / 2;
-    
-    let radius = 0;
-    const maxRadius = Math.max(this.map.width, this.map.height);
-    
-    while (radius < maxRadius) {
-      radius += this.map.tileSize;
-      
-      for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) {
-        const testX = x + radius * Math.cos(angle);
-        const testY = y + radius * Math.sin(angle);
-        
-        if (this.map.isWalkable(testX, testY)) {
-          return { x: testX, y: testY };
-        }
-      }
-    }
-    
-    return { x: this.map.width / 2, y: this.map.height / 2 };
   }
 
   update(): void {
@@ -133,6 +90,11 @@ export class GameConstructor implements IGame {
     
     this.camera.x = this.player.position.x - this.canvas.canvas.width / 2;
     this.camera.y = this.player.position.y - this.canvas.canvas.height / 2;
+
+    // Update online players
+    this.onlinePlayers?.forEach(player => {
+      player.update(direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
+    });
 
     // Update lairs
     this.lairs.forEach(lair => {

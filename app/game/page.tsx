@@ -9,30 +9,40 @@ import { ItemModel } from '../models/game/entities/items-model';
 import { EquippedItemsModel } from '../models/game/entities/player-model';
 import { SkillsModel } from '../models/game/entities/skill-model';
 import { useRouter } from 'next/navigation';
-import { Character, fetchCharacter, updateCharacter, updateCharacterSkills } from '../lib/supabaseClient';
+import { Character, fetchCharacter, fetchOnlineCharacters, updateCharacter, updateCharacterSkills } from '../lib/supabaseClient';
 
 export default function GamePage() {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameInstanceRef = useRef<GameConstructor | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<Character | null>(null);
-
+  const [onlineCharacters, setOnlineCharacters] = useState<Character[]>([]);
+  
+  // Handle selected character
   useEffect(() => {
-     // Load character from database
-     const selectedCharacter = JSON.parse(localStorage.getItem('selectedCharacter') || '{}');
-     if (!selectedCharacter) {
-       router.push('/account');
-       return;
-     }
-     const fetchCharacterInfo = async () => {
-       const { data: character, error: characterError } = await fetchCharacter(selectedCharacter.id);
-       if (characterError) throw characterError;
-       if (character && character.length > 0) {
-         setSelectedPlayer(character[0] as Character);
-       }
-     }
-     fetchCharacterInfo();
- 
+    // Load character from database
+    const selectedCharacter = JSON.parse(localStorage.getItem('selectedCharacter') || '{}');
+    if (!selectedCharacter) {
+      router.push('/account');
+      return;
+    }
+
+    const fetchCharacterInfo = async () => {
+      const { data: character, error: characterError } = await fetchCharacter(selectedCharacter.id);
+      if (characterError) throw characterError;
+      if (character && character.length > 0) {
+        setSelectedPlayer(character[0] as Character);
+      }
+    }
+    fetchCharacterInfo();
+
+    const fetchOnlinePlayers = async () => {
+      const { data: onlinePlayers, error: onlinePlayersError } = await fetchOnlineCharacters();
+      if (onlinePlayersError) throw onlinePlayersError;
+      setOnlineCharacters(onlinePlayers as Character[]);
+      console.log('onlinePlayers', onlinePlayers);
+    }
+    fetchOnlinePlayers();
   }, [router]);
 
   // Function to save game state and character progress
@@ -53,7 +63,8 @@ export default function GamePage() {
         max_mana: Math.floor(player.maxMana),
         position_x: Math.floor(player.position.x),
         position_y: Math.floor(player.position.y),
-        last_attack_time: 0
+        last_attack_time: 0,
+        online: true
       };
       
       // Save skills
@@ -105,8 +116,8 @@ export default function GamePage() {
     }
   };
 
+  // Initialize game
   useEffect(() => {
-    console.log('here', selectedPlayer);
     if (!canvasRef.current) return;
     
     if (selectedPlayer && selectedPlayer.skills) {
@@ -122,7 +133,7 @@ export default function GamePage() {
         canvas.resize(window.innerWidth-50, window.innerHeight-50);
       }
 
-      // Initialize game
+      // Initialize Player
       const inventory: ItemModel[] = []
       const equipment: EquippedItemsModel = {
         helmet: { name: 'Tribal Helmet', type: 'helmet', defense: 1 },
@@ -146,10 +157,8 @@ export default function GamePage() {
         summoningMagic: { name: 'Summoning Magic', level: selectedPlayer.skills[0].summoning_magic, experience: selectedPlayer.skills[0].summoning_magic_exp, maxExperience: 100 },
         shield: { name: 'Shield', level: selectedPlayer.skills[0].shield, experience: selectedPlayer.skills[0].shield_exp, maxExperience: 100 },
       }
-      console.log('skills', skills);
-      console.log('inventory', inventory);
-      console.log('equipment', equipment);
       const player = new Player(
+        selectedPlayer.id,
         selectedPlayer.position_x,
         selectedPlayer.position_y,
         selectedPlayer.name,
@@ -158,12 +167,54 @@ export default function GamePage() {
         selectedPlayer.mana,
         selectedPlayer.max_mana,
         selectedPlayer.last_attack_time,
+        selectedPlayer.online,
         skills,
         inventory,
         equipment
       );
-      console.log('player', player);
-      gameInstanceRef.current = new GameConstructor(canvas, player);
+      console.log('Player', player);
+
+      // Initialize Online Players
+      const onlinePlayers: Player[] = onlineCharacters.map(character => {
+        const characterSkills: SkillsModel = {
+          running: { name: 'Running', level: character.skills ? character.skills[0].running : 0, experience: character.skills ? character.skills[0].running_exp : 0, maxExperience: 100 },
+          unarmed: { name: 'Unarmed', level: character.skills ? character.skills[0].unarmed : 0, experience: character.skills ? character.skills[0].unarmed_exp : 0, maxExperience: 100 },
+          axe: { name: 'Axe', level: character.skills ? character.skills[0].axe : 0, experience: character.skills ? character.skills[0].axe_exp : 0, maxExperience: 100 },
+          throwing: { name: 'Throwing', level: character.skills ? character.skills[0].throwing : 0, experience: character.skills ? character.skills[0].throwing_exp : 0, maxExperience: 100 },
+          bow: { name: 'Bow', level: character.skills ? character.skills[0].bow : 0, experience: character.skills ? character.skills[0].bow_exp : 0, maxExperience: 100 },
+          club: { name: 'Club', level: character.skills ? character.skills[0].club : 0, experience: character.skills ? character.skills[0].club_exp : 0, maxExperience: 100 },
+          elementalMagic: { name: 'Elemental Magic', level: character.skills ? character.skills[0].elemental_magic : 0, experience: character.skills ? character.skills[0].elemental_magic_exp : 0, maxExperience: 100 },
+          shammanMagic: { name: 'Shamman Magic', level: character.skills ? character.skills[0].shamman_magic : 0, experience: character.skills ? character.skills[0].shamman_magic_exp : 0, maxExperience: 100 },
+          natureMagic: { name: 'Nature Magic', level: character.skills ? character.skills[0].nature_magic : 0, experience: character.skills ? character.skills[0].nature_magic_exp : 0, maxExperience: 100 },
+          summoningMagic: { name: 'Summoning Magic', level: character.skills ? character.skills[0].summoning_magic : 0, experience: character.skills ? character.skills[0].summoning_magic_exp : 0, maxExperience: 100 },
+          shield: { name: 'Shield', level: character.skills ? character.skills[0].shield : 0, experience: character.skills ? character.skills[0].shield_exp : 0, maxExperience: 100 },
+        }
+        const equipment: EquippedItemsModel = {
+          helmet: { name: 'Tribal Helmet', type: 'helmet', defense: 1 },
+          chestplate: { name: 'Chief Chestplate', type: 'chestplate', defense: 1 },
+          weapon: { name: 'Divine Axe', type: 'weapon', damage: 1, weaponType: 'axe' },
+          shield: null,
+          legs: null,
+          boots: null,
+      }
+        return new Player(
+          character.id,
+          character.position_x,
+          character.position_y,
+          character.name,
+          character.health,
+          character.max_health,
+          character.mana,
+          character.max_mana,
+          character.last_attack_time,
+          character.online,
+          characterSkills,
+          [],
+          equipment
+        );
+      });
+
+      gameInstanceRef.current = new GameConstructor(canvas, player, onlinePlayers);
 
       // Set up game loop
       let animationFrameId: number;
@@ -183,7 +234,7 @@ export default function GamePage() {
       };
     }
 
-  }, [selectedPlayer]);
+  }, [selectedPlayer, onlineCharacters]);
 
   return (
     <main className="w-full h-full flex justify-center items-center overflow-hidden">
