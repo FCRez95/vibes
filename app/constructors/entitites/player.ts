@@ -6,6 +6,7 @@ import { MonsterModel } from "../../models/game/entities/monster-model";
 import { SkillsModel } from "@/app/models/game/entities/skill-model";
 import { WeaponModel, ItemModel, HelmetModel, ChestplateModel, ShieldModel, LegsModel, BootsModel } from "../../models/game/entities/items-model";
 import { updateCharacter } from "../../lib/supabaseClient";
+import charIdle from '../../../public/assets/character/char-idle.png';
 
 export class Player implements PlayerModel {
   id: number;
@@ -25,9 +26,13 @@ export class Player implements PlayerModel {
   private lastUpdateTime: number = 0;
   private readonly UPDATE_INTERVAL: number = 500; // Increase update interval to 500ms
   private lastPosition: IPosition = { x: 0, y: 0 };
-  private readonly POSITION_CHANGE_THRESHOLD = 2; // Only update if position changed by this many pixels
+  private readonly POSITION_CHANGE_THRESHOLD = 1; // Only update if position changed by this many pixels
   private readonly INTERPOLATION_SPEED = 0.08; // Controls how fast the interpolation happens (0-1)
   private isLocalPlayer: boolean;
+  private sprite: HTMLImageElement;
+  private spriteLoaded: boolean = false;
+  private readonly SPRITE_WIDTH = 64;  // Width of the sprite
+  private readonly SPRITE_HEIGHT = 64; // Height of the sprite
 
   constructor(
     id: number,
@@ -65,6 +70,11 @@ export class Player implements PlayerModel {
     // Initialize inventory and equipment
     this.inventory = inventory;
     this.equipment = equipment;
+
+    // Load sprite image
+    this.sprite = new Image();
+    this.sprite.src = charIdle.src;
+    this.spriteLoaded = true;
   }
 
   isDead(): boolean {
@@ -256,12 +266,23 @@ export class Player implements PlayerModel {
     const screenX = this.position.x - camera.x;
     const screenY = this.position.y - camera.y;
 
-    // Draw player
-    canvas.drawCircle(
+    // Draw player sprite
+    canvas.drawImage(
+      this.sprite,
+      screenX - this.SPRITE_WIDTH / 2,
+      screenY - this.SPRITE_HEIGHT / 2,
+      this.SPRITE_WIDTH,
+      this.SPRITE_HEIGHT
+    );
+
+    // Draw name above player
+    canvas.drawText(
+      this.name,
       screenX,
-      screenY,
-      10,
-      'red'
+      screenY - this.SPRITE_HEIGHT - 10,
+      '#ffffff',
+      12,
+      'Arial'
     );
 
     // Draw health bar
@@ -272,7 +293,7 @@ export class Player implements PlayerModel {
     // Background of health bar
     canvas.drawRect(
       screenX - healthBarWidth / 2,
-      screenY - 25,
+      screenY - this.SPRITE_HEIGHT - 5,
       healthBarWidth,
       healthBarHeight,
       '#000'
@@ -281,7 +302,7 @@ export class Player implements PlayerModel {
     // Health bar
     canvas.drawRect(
       screenX - healthBarWidth / 2,
-      screenY - 25,
+      screenY - this.SPRITE_HEIGHT - 5,
       healthBarWidth * healthPercentage,
       healthBarHeight,
       'green'
@@ -295,7 +316,7 @@ export class Player implements PlayerModel {
     // Background of mana bar
     canvas.drawRect(
       screenX - manaBarWidth / 2,
-      screenY - 18,
+      screenY - this.SPRITE_HEIGHT + 1,
       manaBarWidth,
       manaBarHeight,
       'rgba(0, 0, 0, 0.5)'
@@ -304,7 +325,7 @@ export class Player implements PlayerModel {
     // Mana bar
     canvas.drawRect(
       screenX - manaBarWidth / 2,
-      screenY - 18,
+      screenY - this.SPRITE_HEIGHT + 1,
       manaBarWidth * manaPercentage,
       manaBarHeight,
       'blue'

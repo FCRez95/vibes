@@ -20,6 +20,7 @@ export class GameConstructor implements IGame {
   public isMobile: boolean;
   private readonly MOBILE_UPDATE_RATE = 30; // Lower update rate for mobile
   private readonly DESKTOP_UPDATE_RATE = 60; // Higher update rate for desktop
+  private readonly VERTICAL_OFFSET = 0.4; // Player will be 30% from the bottom
 
   constructor(canvas: ICanvas, player: Player, onlinePlayers: Player[] | null) {
     this.canvas = canvas;
@@ -29,7 +30,7 @@ export class GameConstructor implements IGame {
     this.camera = { x: 0, y: 0 };
     this.player = player;
     this.onlinePlayers = onlinePlayers;
-    this.map = new Map(10000, 10000, lairPositions);
+    this.map = new Map(14000, 14000, lairPositions);
     this.controls = new Controls(canvas);
     
     // Detect if running on mobile
@@ -41,10 +42,10 @@ export class GameConstructor implements IGame {
   }
 
   initGame(): void {   
-    // Camera position (top-left corner of the view)
+    // Camera position with vertical offset (player will be 30% from the bottom)
     this.camera = {
       x: this.player.position.x - this.canvas.canvas.width / 2,
-      y: this.player.position.y - this.canvas.canvas.height / 2
+      y: this.player.position.y - this.canvas.canvas.height * (1 - this.VERTICAL_OFFSET)
     };
 
     // Initialize lairs
@@ -111,8 +112,9 @@ export class GameConstructor implements IGame {
     const direction = this.controls.joystick.getDirection();
     this.player.update(direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
     
+    // Update camera position with vertical offset
     this.camera.x = this.player.position.x - this.canvas.canvas.width / 2;
-    this.camera.y = this.player.position.y - this.canvas.canvas.height / 2;
+    this.camera.y = this.player.position.y - this.canvas.canvas.height * (1 - this.VERTICAL_OFFSET);
 
     // Update all online players with interpolation
     this.onlinePlayers?.forEach(player => {

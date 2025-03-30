@@ -125,19 +125,20 @@ export default function GamePage() {
   }, [selectedPlayer?.id]); // Only depend on selectedPlayer.id
 
   // Helper function to initialize a player
+  // Calculate max experience for each skill based on the level -- 150 * level
   const initializePlayer = (character: Character, isLocalPlayer: boolean = false) => {
     const skills: SkillsModel = {
-      running: { name: 'Running', level: character.skills ? character.skills[0].running : 0, experience: character.skills ? character.skills[0].running_exp : 0, maxExperience: 100 },
-      unarmed: { name: 'Unarmed', level: character.skills ? character.skills[0].unarmed : 0, experience: character.skills ? character.skills[0].unarmed_exp : 0, maxExperience: 100 },
-      axe: { name: 'Axe', level: character.skills ? character.skills[0].axe : 0, experience: character.skills ? character.skills[0].axe_exp : 0, maxExperience: 100 },
-      throwing: { name: 'Throwing', level: character.skills ? character.skills[0].throwing : 0, experience: character.skills ? character.skills[0].throwing_exp : 0, maxExperience: 100 },
-      bow: { name: 'Bow', level: character.skills ? character.skills[0].bow : 0, experience: character.skills ? character.skills[0].bow_exp : 0, maxExperience: 100 },
-      club: { name: 'Club', level: character.skills ? character.skills[0].club : 0, experience: character.skills ? character.skills[0].club_exp : 0, maxExperience: 100 },
+      running: { name: 'Running', level: character.skills ? character.skills[0].running : 0, experience: character.skills ? character.skills[0].running_exp : 0, maxExperience: character.skills ? character.skills[0].running * 150 : 0 },
+      unarmed: { name: 'Unarmed', level: character.skills ? character.skills[0].unarmed : 0, experience: character.skills ? character.skills[0].unarmed_exp : 0, maxExperience: character.skills ? character.skills[0].unarmed * 150 : 0 },
+      axe: { name: 'Axe', level: character.skills ? character.skills[0].axe : 0, experience: character.skills ? character.skills[0].axe_exp : 0, maxExperience: character.skills ? character.skills[0].axe * 150 : 0 },
+      throwing: { name: 'Throwing', level: character.skills ? character.skills[0].throwing : 0, experience: character.skills ? character.skills[0].throwing_exp : 0, maxExperience: character.skills ? character.skills[0].throwing * 150 : 0 },
+      bow: { name: 'Bow', level: character.skills ? character.skills[0].bow : 0, experience: character.skills ? character.skills[0].bow_exp : 0, maxExperience: character.skills ? character.skills[0].bow * 150 : 0 },
+      club: { name: 'Club', level: character.skills ? character.skills[0].club : 0, experience: character.skills ? character.skills[0].club_exp : 0, maxExperience: character.skills ? character.skills[0].club * 150 : 0 },
       elementalMagic: { name: 'Elemental Magic', level: character.skills ? character.skills[0].elemental_magic : 0, experience: character.skills ? character.skills[0].elemental_magic_exp : 0, maxExperience: 100 },
-      shammanMagic: { name: 'Shamman Magic', level: character.skills ? character.skills[0].shamman_magic : 0, experience: character.skills ? character.skills[0].shamman_magic_exp : 0, maxExperience: 100 },
-      natureMagic: { name: 'Nature Magic', level: character.skills ? character.skills[0].nature_magic : 0, experience: character.skills ? character.skills[0].nature_magic_exp : 0, maxExperience: 100 },
-      summoningMagic: { name: 'Summoning Magic', level: character.skills ? character.skills[0].summoning_magic : 0, experience: character.skills ? character.skills[0].summoning_magic_exp : 0, maxExperience: 100 },
-      shield: { name: 'Shield', level: character.skills ? character.skills[0].shield : 0, experience: character.skills ? character.skills[0].shield_exp : 0, maxExperience: 100 },
+      shammanMagic: { name: 'Shamman Magic', level: character.skills ? character.skills[0].shamman_magic : 0, experience: character.skills ? character.skills[0].shamman_magic_exp : 0, maxExperience: character.skills ? character.skills[0].shamman_magic * 150 : 0 },
+      natureMagic: { name: 'Nature Magic', level: character.skills ? character.skills[0].nature_magic : 0, experience: character.skills ? character.skills[0].nature_magic_exp : 0, maxExperience: character.skills ? character.skills[0].nature_magic * 150 : 0 },
+      summoningMagic: { name: 'Summoning Magic', level: character.skills ? character.skills[0].summoning_magic : 0, experience: character.skills ? character.skills[0].summoning_magic_exp : 0, maxExperience: character.skills ? character.skills[0].summoning_magic * 150 : 0 },
+      shield: { name: 'Shield', level: character.skills ? character.skills[0].shield : 0, experience: character.skills ? character.skills[0].shield_exp : 0, maxExperience: character.skills ? character.skills[0].shield * 150 : 0 },
     };
 
     const equipment: EquippedItemsModel = {
@@ -238,47 +239,76 @@ export default function GamePage() {
     }
   };
 
+  // Prevent zoom on mobile devices
+  useEffect(() => {
+    const preventZoom = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+
+    const preventDefaultZoom = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+      }
+    };
+
+    // Add event listeners
+    document.addEventListener('touchstart', preventZoom, { passive: false });
+    document.addEventListener('touchmove', preventZoom, { passive: false });
+    document.addEventListener('wheel', preventDefaultZoom, { passive: false });
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('touchstart', preventZoom);
+      document.removeEventListener('touchmove', preventZoom);
+      document.removeEventListener('wheel', preventDefaultZoom);
+    };
+  }, []);
+
   return (
-    <main className="w-full h-full flex justify-center items-center overflow-hidden">
-      <canvas ref={canvasRef} className="border border-gray-300" />
-      <GameControls 
-        onAttackClick={() => {
-          if (gameInstanceRef.current) {
-            gameInstanceRef.current.controls.handleAttackClick();  
-          }
-        }} 
-        onJoystickMove={(direction) => {
-          if (gameInstanceRef.current) {
-            gameInstanceRef.current.controls.handleJoystickMove(direction);
-          }
-        }} 
-        onJoystickStart={() => {
-          if (gameInstanceRef.current) {
-            gameInstanceRef.current.controls.handleJoystickStart();
-          }
-        }} 
-        onJoystickEnd={() => {
-          if (gameInstanceRef.current) {
-            gameInstanceRef.current.controls.handleJoystickEnd();
-          }
-        }}
-        onSaveGameState={saveGameState}
-        skills={() => {
-          if (gameInstanceRef.current) {
-            return gameInstanceRef.current.player.skills;
-          }
-        }}
-        inventory={() => {
-          if (gameInstanceRef.current) {
-            return gameInstanceRef.current.player.inventory;
-          }
-        }}
-        equipment={() => {
-          if (gameInstanceRef.current) {
-            return gameInstanceRef.current.player.equipment;
-          }
-        }}
-      />
-    </main>
+    <>
+      <main className="w-full h-full flex justify-center items-center overflow-hidden touch-none">
+        <canvas ref={canvasRef} className="border border-gray-300" />
+        <GameControls 
+          onAttackClick={() => {
+            if (gameInstanceRef.current) {
+              gameInstanceRef.current.controls.handleAttackClick();  
+            }
+          }} 
+          onJoystickMove={(direction) => {
+            if (gameInstanceRef.current) {
+              gameInstanceRef.current.controls.handleJoystickMove(direction);
+            }
+          }} 
+          onJoystickStart={() => {
+            if (gameInstanceRef.current) {
+              gameInstanceRef.current.controls.handleJoystickStart();
+            }
+          }} 
+          onJoystickEnd={() => {
+            if (gameInstanceRef.current) {
+              gameInstanceRef.current.controls.handleJoystickEnd();
+            }
+          }}
+          onSaveGameState={saveGameState}
+          skills={() => {
+            if (gameInstanceRef.current) {
+              return gameInstanceRef.current.player.skills;
+            }
+          }}
+          inventory={() => {
+            if (gameInstanceRef.current) {
+              return gameInstanceRef.current.player.inventory;
+            }
+          }}
+          equipment={() => {
+            if (gameInstanceRef.current) {
+              return gameInstanceRef.current.player.equipment;
+            }
+          }}
+        />
+      </main>
+    </>
   );  
 }

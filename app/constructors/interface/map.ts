@@ -32,7 +32,7 @@ export class Map implements IMap {
   constructor(width: number, height: number, monsterLairs: { x: number; y: number, difficulty: string }[]) {
     this.width = width;
     this.height = height;
-    this.tileSize = 64;
+    this.tileSize = 128;
 
     this.TERRAIN = {
       GRASS: { type: 'grass', color: '#90EE90', walkable: true },
@@ -116,16 +116,16 @@ export class Map implements IMap {
   }
 
   generateLakes(): void {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 12; i++) {
       const centerX = Math.floor(this.seededRandom() * (this.gridCols - 20)) + 10;
       const centerY = Math.floor(this.seededRandom() * (this.gridRows - 20)) + 10;
-      const lakeSize = Math.floor(this.seededRandom() * 5) + 7; // Random size between 5 and 10
+      const lakeSize = Math.floor(this.seededRandom() * 5) + 5; // Random size between 5 and 10
 
       for (let y = -lakeSize; y <= lakeSize; y++) {
         for (let x = -lakeSize; x <= lakeSize; x++) {
           // Add some randomness to the lake shape
           const distance = Math.sqrt(x * x + y * y);
-          const noise = this.seededRandom() * 0.4; // 30% noise
+          const noise = this.seededRandom() * 0.3; // 30% noise
           if (distance <= lakeSize + noise) {
             const mapX = centerX + x;
             const mapY = centerY + y;
@@ -142,7 +142,7 @@ export class Map implements IMap {
     for (let i = 0; i < 20; i++) {
       const x = Math.floor(this.seededRandom() * this.gridCols);
       const y = Math.floor(this.seededRandom() * this.gridRows);
-      const radius = Math.floor(this.seededRandom() * 8) + 8; // Random size between 4 and 12
+      const radius = Math.floor(this.seededRandom() * 8) + 4; // Random size between 4 and 12
       
       // Randomly select terrain type with different probabilities
       const terrainType = this.seededRandom();
@@ -214,7 +214,7 @@ export class Map implements IMap {
   }
 
   generateTemplePatch(centerX: number, centerY: number): void {
-    const templeSize = 20; // Same size as lairs
+    const templeSize = 10; // Same size as lairs
     const halfSize = Math.floor(templeSize / 2);
 
     // Generate the temple ground
