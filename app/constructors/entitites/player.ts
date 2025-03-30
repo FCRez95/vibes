@@ -15,6 +15,7 @@ export class Player implements PlayerModel {
   mana: number;
   maxMana: number;
   position: IPosition;
+  targetPosition: IPosition | null;
   skills: SkillsModel;
   inventory: ItemModel[];
   equipment: EquippedItemsModel;
@@ -24,8 +25,6 @@ export class Player implements PlayerModel {
   private lastUpdateTime: number = 0;
   private readonly UPDATE_INTERVAL: number = 100; // Update database every 100ms
   private positionChanged: boolean = false;
-  private targetPosition: IPosition;
-  private readonly INTERPOLATION_SPEED = 0.15; // Adjust for smoothness (0.1 = smoother but slower, 0.3 = faster but jerkier)
 
   constructor(
     id: number,
@@ -49,7 +48,7 @@ export class Player implements PlayerModel {
     this.maxMana = maxMana;
     this.mana = mana;
     this.position = { x, y };
-    this.targetPosition = { x, y }; // Initialize target position
+    this.targetPosition = null;
     this.online = online;
     this.attackCooldown = 1000;
     this.lastAttackTime = lastAttackTime;
@@ -176,50 +175,34 @@ export class Player implements PlayerModel {
     }
   }
 
-  // Add method to update target position for online players
-  updateTargetPosition(x: number, y: number): void {
-    this.targetPosition.x = x;
-    this.targetPosition.y = y;
+  // Other online player actions
+  updateOnlinePlayer(targetPosition: IPosition | null): void {
+    if (!targetPosition) return;
+
+    // Calculate new position
+    this.position.x = targetPosition.x;
+    this.position.y = targetPosition.y;
   }
 
-  update(id: number | null, direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel | null): void {
-    // Check if this is the local player by ID instead of online status
-    if (id === this.id) { // checking if the id is the same as the player id
-      // Local player: Direct control with database updates
-      const oldX = this.position.x;
-      const oldY = this.position.y;
+  // All user actions are handled here
+  update(direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel | null): void {
+    const oldX = this.position.x;
+    const oldY = this.position.y;
 
-      // Calculate new position
-      const speed = this.skills.running.level;
-      const newX = this.position.x + direction.x * speed;
-      const newY = this.position.y + direction.y * speed;
+    // Calculate new position
+    const speed = this.skills.running.level;
+    const newX = this.position.x + direction.x * speed;
+    const newY = this.position.y + direction.y * speed;
 
-      // Check if new position is walkable and not colliding with monsters
-      if (map.isWalkable(newX, newY) && !this.checkCollision(newX, newY, monsters)) {
-        this.position.x = newX;
-        this.position.y = newY;
-        this.targetPosition.x = newX;
-        this.targetPosition.y = newY;
+    // Check if new position is walkable and not colliding with monsters
+    if (map.isWalkable(newX, newY) && !this.checkCollision(newX, newY, monsters)) {
+      this.position.x = newX;
+      this.position.y = newY;
 
-        // Check if position actually changed
-        if (oldX !== newX || oldY !== newY) {
-          this.positionChanged = true;
-          this.updatePlayerState(); // Update database with new position
-        }
-      }
-    } else {
-      // Online player: Smooth interpolation to target position
-      const dx = this.targetPosition.x - this.position.x;
-      const dy = this.targetPosition.y - this.position.y;
-      
-      // Only interpolate if we're not already at the target
-      if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
-        this.position.x += dx * this.INTERPOLATION_SPEED;
-        this.position.y += dy * this.INTERPOLATION_SPEED;
-      } else {
-        // Snap to target if we're very close to avoid tiny movements
-        this.position.x = this.targetPosition.x;
-        this.position.y = this.targetPosition.y;
+      // Check if position actually changed
+      if (oldX !== newX || oldY !== newY) {
+        this.positionChanged = true;
+        this.updatePlayerState(); // Update database with new position
       }
     }
 

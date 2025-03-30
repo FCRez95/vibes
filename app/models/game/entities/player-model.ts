@@ -22,6 +22,7 @@ export interface PlayerModel {
     mana: number;
     maxMana: number;
     position: IPosition;
+    targetPosition: IPosition | null;
     skills: SkillsModel;
     inventory: ItemModel[];
     equipment: EquippedItemsModel;
@@ -29,6 +30,6 @@ export interface PlayerModel {
     online: boolean;
     
     isDead(): boolean;
-    update(id: number | null, direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel): void;
+    update(direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel): void;
     draw(canvas: ICanvas, camera: { x: number; y: number }): void;
 } 

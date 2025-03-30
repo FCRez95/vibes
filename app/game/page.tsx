@@ -99,19 +99,8 @@ export default function GamePage() {
           
           if (id !== selectedPlayer?.id && gameInstanceRef.current) {
             // Update the game instance with new player position
+            console.log('updating online player', id, name, position_x, position_y, health, mana, max_health, max_mana, last_attack_time, online);
             gameInstanceRef.current.updateOnlinePlayer(id, position_x, position_y, health, mana);
-            
-            // Update state without causing re-render of game instance
-            console.log('id', id, 'position_x', position_x, 'position_y', position_y, 'health', health, 'max_health', max_health, 'mana', mana, 'max_mana', max_mana, 'last_attack_time', last_attack_time, 'online', online, 'name', name);
-            /* setOnlineCharacters(prevPlayers => {
-              const index = prevPlayers.findIndex(player => player.id === id);
-              if (index !== -1) {
-                const updatedPlayers = [...prevPlayers];
-                updatedPlayers[index] = { ...updatedPlayers[index], position_x, position_y, health, mana, online };
-                return updatedPlayers;
-              }
-              return [...prevPlayers, { id, position_x, position_y, health, max_health, mana, max_mana, last_attack_time, online, name }];
-            }); */
           }
         }
       )

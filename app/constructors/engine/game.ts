@@ -62,16 +62,12 @@ export class GameConstructor implements IGame {
     });
   }
 
-  // Add method to update online player positions
+  // Add method to update online player data
   updateOnlinePlayer(playerId: number, x: number, y: number, health: number, mana: number): void {
     if (!this.onlinePlayers) return;
-
     const onlinePlayer = this.onlinePlayers.find(p => p.id === playerId);
     if (onlinePlayer) {
-      // Use smooth movement for position updates
-      onlinePlayer.updateTargetPosition(x, y);
-      
-      // Instant updates for health and mana
+      onlinePlayer.targetPosition = { x, y };
       onlinePlayer.health = health;
       onlinePlayer.mana = mana;
     }
@@ -101,10 +97,16 @@ export class GameConstructor implements IGame {
 
     // Update player actions
     const direction = this.controls.joystick.getDirection();
-    this.player.update(this.player.id, direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
+    this.player.update(direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
     
     this.camera.x = this.player.position.x - this.canvas.canvas.width / 2;
     this.camera.y = this.player.position.y - this.canvas.canvas.height / 2;
+
+    // Update all players
+    this.onlinePlayers?.forEach(player => {
+      if (player.id === this.player.id) return;
+      player.updateOnlinePlayer(player.targetPosition);
+    });
 
     // Update lairs
     this.lairs.forEach(lair => {
