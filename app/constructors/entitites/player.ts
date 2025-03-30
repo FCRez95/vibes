@@ -25,7 +25,9 @@ export class Player implements PlayerModel {
   private lastUpdateTime: number = 0;
   private readonly UPDATE_INTERVAL: number = 500; // Increase update interval to 500ms
   private lastPosition: IPosition = { x: 0, y: 0 };
-  private readonly POSITION_CHANGE_THRESHOLD = 3; // Only update if position changed by this many pixels
+  private readonly POSITION_CHANGE_THRESHOLD = 2; // Only update if position changed by this many pixels
+  private readonly INTERPOLATION_SPEED = 0.15; // Controls how fast the interpolation happens (0-1)
+  private isLocalPlayer: boolean;
 
   constructor(
     id: number,
@@ -40,7 +42,8 @@ export class Player implements PlayerModel {
     online: boolean,
     skills: SkillsModel,
     inventory: ItemModel[],
-    equipment: EquippedItemsModel
+    equipment: EquippedItemsModel,
+    isLocalPlayer: boolean = true
   ) {
     this.id = id;
     this.name = name;
@@ -49,11 +52,12 @@ export class Player implements PlayerModel {
     this.maxMana = maxMana;
     this.mana = mana;
     this.position = { x, y };
-    this.targetPosition = null;
+    this.targetPosition = { x, y };
     this.online = online;
     this.attackCooldown = 1000;
     this.lastAttackTime = lastAttackTime;
     this.lastUpdateTime = Date.now();
+    this.isLocalPlayer = isLocalPlayer;
 
     // Initialize stats
     this.skills = skills;
@@ -183,11 +187,14 @@ export class Player implements PlayerModel {
 
   // Other online player actions
   updateOnlinePlayer(targetPosition: IPosition | null): void {
-    if (!targetPosition) return;
+    if (!targetPosition || this.isLocalPlayer) return;
 
-    // Calculate new position
-    this.position.x = targetPosition.x;
-    this.position.y = targetPosition.y;
+    // Update target position for interpolation
+    this.targetPosition = targetPosition;
+
+    // Interpolate position
+    this.position.x += (this.targetPosition.x - this.position.x) * this.INTERPOLATION_SPEED;
+    this.position.y += (this.targetPosition.y - this.position.y) * this.INTERPOLATION_SPEED;
   }
 
   // All user actions are handled here

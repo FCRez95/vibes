@@ -114,13 +114,15 @@ export class GameConstructor implements IGame {
     this.camera.x = this.player.position.x - this.canvas.canvas.width / 2;
     this.camera.y = this.player.position.y - this.canvas.canvas.height / 2;
 
-    // Update all players - optimize for mobile
-    if (!this.isMobile || Math.random() < 0.5) {
-      this.onlinePlayers?.forEach(player => {
-        if (player.id === this.player.id) return;
+    // Update all online players with interpolation
+    this.onlinePlayers?.forEach(player => {
+      if (player.id === this.player.id) return;
+      
+      // Update online player position with interpolation
+      if (player.targetPosition) {
         player.updateOnlinePlayer(player.targetPosition);
-      });
-    }
+      }
+    });
 
     // Update lairs - optimize for mobile
     if (!this.isMobile || Math.random() < 0.3) {

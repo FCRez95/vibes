@@ -60,8 +60,8 @@ export default function GamePage() {
     }
 
     // Initialize Player and game instance
-    const player = initializePlayer(selectedPlayer);
-    const onlinePlayers = onlineCharacters.map(character => initializePlayer(character));
+    const player = initializePlayer(selectedPlayer, true);
+    const onlinePlayers = onlineCharacters.map(character => initializePlayer(character, false));
     console.log('onlinePlayers', onlinePlayers);
     gameInstanceRef.current = new GameConstructor(canvas, player, onlinePlayers);
 
@@ -125,7 +125,7 @@ export default function GamePage() {
   }, [selectedPlayer?.id]); // Only depend on selectedPlayer.id
 
   // Helper function to initialize a player
-  const initializePlayer = (character: Character) => {
+  const initializePlayer = (character: Character, isLocalPlayer: boolean = false) => {
     const skills: SkillsModel = {
       running: { name: 'Running', level: character.skills ? character.skills[0].running : 0, experience: character.skills ? character.skills[0].running_exp : 0, maxExperience: 100 },
       unarmed: { name: 'Unarmed', level: character.skills ? character.skills[0].unarmed : 0, experience: character.skills ? character.skills[0].unarmed_exp : 0, maxExperience: 100 },
@@ -162,7 +162,8 @@ export default function GamePage() {
       character.online,
       skills,
       [],
-      equipment
+      equipment,
+      isLocalPlayer
     );
   };
 
