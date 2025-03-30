@@ -92,8 +92,10 @@ export class GameConstructor implements IGame {
     this.camera.y = this.player.position.y - this.canvas.canvas.height / 2;
 
     // Update online players
-    this.onlinePlayers?.forEach(player => {
-      player.update(direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
+    this.onlinePlayers?.forEach(character => {
+      if (character.id !== this.player.id) {
+        character.update(direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
+      }
     });
 
     // Update lairs
