@@ -67,7 +67,7 @@ export default function GamePage() {
 
     // Set up game loop with frame rate control
     let lastTime = 0;
-    const targetFPS = 60;
+    const targetFPS = gameInstanceRef.current?.isMobile ? 30 : 60;
     const frameInterval = 1000 / targetFPS;
     let animationFrameId: number;
     

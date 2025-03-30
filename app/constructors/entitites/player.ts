@@ -24,9 +24,8 @@ export class Player implements PlayerModel {
   online: boolean;
   private lastUpdateTime: number = 0;
   private readonly UPDATE_INTERVAL: number = 500; // Increase update interval to 500ms
-  private positionChanged: boolean = false;
   private lastPosition: IPosition = { x: 0, y: 0 };
-  private readonly POSITION_CHANGE_THRESHOLD = 5; // Only update if position changed by this many pixels
+  private readonly POSITION_CHANGE_THRESHOLD = 3; // Only update if position changed by this many pixels
 
   constructor(
     id: number,
@@ -208,7 +207,6 @@ export class Player implements PlayerModel {
 
       // Check if position actually changed
       if (oldX !== newX || oldY !== newY) {
-        this.positionChanged = true;
         this.updatePlayerState(); // Update database with new position
       }
     }

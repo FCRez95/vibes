@@ -17,7 +17,7 @@ export class GameConstructor implements IGame {
   monsters: MonsterModel[];
   lairs: Lair[];
   controls: Controls;
-  private isMobile: boolean;
+  public isMobile: boolean;
   private readonly MOBILE_UPDATE_RATE = 30; // Lower update rate for mobile
   private readonly DESKTOP_UPDATE_RATE = 60; // Higher update rate for desktop
 
