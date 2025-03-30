@@ -8,7 +8,7 @@ import { Player } from '../constructors/entitites/player';
 import { EquippedItemsModel } from '../models/game/entities/player-model';
 import { SkillsModel } from '../models/game/entities/skill-model';
 import { useRouter } from 'next/navigation';
-import { Character, fetchCharacter, fetchOnlineCharacters, supabase, updateCharacter } from '../lib/supabaseClient';
+import { Character, fetchCharacter, fetchOnlineCharacters, supabase, updateCharacter, updateCharacterSkills } from '../lib/supabaseClient';
 
 export default function GamePage() {
   const router = useRouter();
@@ -16,10 +16,6 @@ export default function GamePage() {
   const gameInstanceRef = useRef<GameConstructor | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<Character | null>(null);
   const [onlineCharacters, setOnlineCharacters] = useState<Character[]>([]);
-  const lastUpdateRef = useRef<number>(0);
-  const FPS = 60; // Limit FPS to 60
-  const frameTime = 1000 / FPS;
-  const UPDATE_INTERVAL = 100; // Update database every 100ms
   
   // Handle selected character and initial online players fetch
   useEffect(() => {
@@ -66,112 +62,29 @@ export default function GamePage() {
     // Initialize Player and game instance
     const player = initializePlayer(selectedPlayer);
     const onlinePlayers = onlineCharacters.map(character => initializePlayer(character));
-    
+    console.log('onlinePlayers', onlinePlayers);
     gameInstanceRef.current = new GameConstructor(canvas, player, onlinePlayers);
 
-    let lastFrameTime = 0;
-    // Set up game loop with frame timing
-    const gameLoop = (timestamp: number) => {
-      if (!gameInstanceRef.current) return;
-
-      // Calculate time since last frame
-      const deltaTime = timestamp - lastFrameTime;
-
-      // Only update if enough time has passed
-      if (deltaTime >= frameTime) {
+    // Set up game loop
+    let animationFrameId: number;
+    const gameLoop = () => {
+      if (gameInstanceRef.current) {
         gameInstanceRef.current.update();
         gameInstanceRef.current.draw();
-        
-        // Update database if enough time has passed
-        const now = Date.now();
-        if (now - lastUpdateRef.current >= UPDATE_INTERVAL) {
-          saveGameState();
-          lastUpdateRef.current = now;
-        }
-
-        lastFrameTime = timestamp;
       }
-
-      requestAnimationFrame(gameLoop);
+      animationFrameId = requestAnimationFrame(gameLoop);
     };
-
-    requestAnimationFrame(gameLoop);
+    gameLoop();
 
     // Cleanup
     return () => {
+      cancelAnimationFrame(animationFrameId);
       gameInstanceRef.current = null;
     };
   }, [selectedPlayer]); // Only depend on selectedPlayer, not onlineCharacters
 
-  // Handle online players updates with debouncing
+  // Handle online players updates
   useEffect(() => {
-    interface PendingUpdate {
-      id: number;
-      position_x: number;
-      position_y: number;
-      health: number;
-      max_health: number;
-      mana: number;
-      max_mana: number;
-      last_attack_time: number;
-      online: boolean;
-      name: string;
-    }
-
-    const pendingUpdates = new Map<number, PendingUpdate>();
-    let updateTimeout: NodeJS.Timeout | null = null;
-
-    const processUpdates = () => {
-      if (!gameInstanceRef.current) return;
-
-      // Apply all pending updates at once
-      pendingUpdates.forEach((data) => {
-        gameInstanceRef.current?.updateOnlinePlayer(
-          data.id,
-          data.position_x,
-          data.position_y,
-          data.health,
-          data.mana
-        );
-      });
-
-      // Update React state once for all changes
-      setOnlineCharacters(prevPlayers => {
-        const updatedPlayers = [...prevPlayers];
-        pendingUpdates.forEach((data) => {
-          const index = updatedPlayers.findIndex(player => player.id === data.id);
-          if (index !== -1) {
-            updatedPlayers[index] = { 
-              ...updatedPlayers[index], 
-              position_x: data.position_x,
-              position_y: data.position_y,
-              health: data.health,
-              mana: data.mana,
-              online: data.online
-            };
-          } else {
-            // Create a proper Character object
-            const newPlayer: Character = {
-              id: data.id,
-              position_x: data.position_x,
-              position_y: data.position_y,
-              health: data.health,
-              max_health: data.max_health,
-              mana: data.mana,
-              max_mana: data.max_mana,
-              last_attack_time: data.last_attack_time,
-              online: data.online,
-              name: data.name
-            };
-            updatedPlayers.push(newPlayer);
-          }
-        });
-        return updatedPlayers;
-      });
-
-      pendingUpdates.clear();
-    };
-
     const channel = supabase
       .channel('all_players')
       .on(
@@ -184,29 +97,29 @@ export default function GamePage() {
         (payload) => {
           const { id, position_x, position_y, health, max_health, mana, max_mana, last_attack_time, online, name } = payload.new as Character;
           
-          if (id !== selectedPlayer?.id) {
-            // Collect updates
-            pendingUpdates.set(id, { id, position_x, position_y, health, max_health, mana, max_mana, last_attack_time, online, name });
-
-            // Clear existing timeout
-            if (updateTimeout) {
-              clearTimeout(updateTimeout);
-            }
-
-            // Process updates after a short delay
-            updateTimeout = setTimeout(processUpdates, 16); // Approximately 60fps
+          if (id !== selectedPlayer?.id && gameInstanceRef.current) {
+            // Update the game instance with new player position
+            gameInstanceRef.current.updateOnlinePlayer(id, position_x, position_y, health, mana);
+            
+            // Update state without causing re-render of game instance
+            setOnlineCharacters(prevPlayers => {
+              const index = prevPlayers.findIndex(player => player.id === id);
+              if (index !== -1) {
+                const updatedPlayers = [...prevPlayers];
+                updatedPlayers[index] = { ...updatedPlayers[index], position_x, position_y, health, mana, online };
+                return updatedPlayers;
+              }
+              return [...prevPlayers, { id, position_x, position_y, health, max_health, mana, max_mana, last_attack_time, online, name }];
+            });
           }
         }
       )
       .subscribe();
   
     return () => {
-      if (updateTimeout) {
-        clearTimeout(updateTimeout);
-      }
       supabase.removeChannel(channel);
     };
-  }, [selectedPlayer?.id]);
+  }, [selectedPlayer?.id]); // Only depend on selectedPlayer.id
 
   // Helper function to initialize a player
   const initializePlayer = (character: Character) => {
@@ -254,6 +167,7 @@ export default function GamePage() {
   const saveGameState = async (): Promise<boolean> => {
     try {
       if (!gameInstanceRef.current || !selectedPlayer) {
+        console.error('Game instance or player not available');
         return false;
       }
 
@@ -270,14 +184,49 @@ export default function GamePage() {
         last_attack_time: 0,
         online: true
       };
-
-      // Update character data only
+      
+      // Save skills
+      const skillsData = {
+        running: player.skills.running.level,
+        running_exp: player.skills.running.experience,
+        unarmed: player.skills.unarmed.level,
+        unarmed_exp: player.skills.unarmed.experience,
+        axe: player.skills.axe.level,
+        axe_exp: player.skills.axe.experience,
+        throwing: player.skills.throwing.level,
+        throwing_exp: player.skills.throwing.experience,
+        bow: player.skills.bow.level,
+        bow_exp: player.skills.bow.experience,
+        club: player.skills.club.level,
+        club_exp: player.skills.club.experience,
+        elemental_magic: player.skills.elementalMagic.level,
+        elemental_magic_exp: player.skills.elementalMagic.experience,
+        nature_magic: player.skills.natureMagic.level,
+        nature_magic_exp: player.skills.natureMagic.experience,
+        summoning_magic: player.skills.summoningMagic.level,
+        summoning_magic_exp: player.skills.summoningMagic.experience,
+        shamman_magic: player.skills.shammanMagic.level,
+        shamman_magic_exp: player.skills.shammanMagic.experience,
+        shield: player.skills.shield.level,
+        shield_exp: player.skills.shield.experience
+      };
+      
+      // Update character data
       const { error: characterError } = await updateCharacter(selectedPlayer.id, characterData);
       if (characterError) {
+        console.log('Character data', characterData);
         console.error('Error updating character:', characterError);
         return false;
       }
       
+      // Update skills
+      const { error: skillsError } = await updateCharacterSkills(selectedPlayer.id, skillsData);
+      if (skillsError) {
+        console.error('Error updating skills:', skillsError);
+        return false;
+      }
+      
+      console.log('Game state saved successfully');
       return true;
     } catch (error) {
       console.error('Error saving game state:', error);
