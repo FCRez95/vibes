@@ -182,8 +182,9 @@ export class Player implements PlayerModel {
     this.targetPosition.y = y;
   }
 
-  update(direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel | null): void {
-    if (!this.online) {
+  update(id: number | null, direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel | null): void {
+    // Check if this is the local player by ID instead of online status
+    if (id === this.id) { // checking if the id is the same as the player id
       // Local player: Direct control with database updates
       const oldX = this.position.x;
       const oldY = this.position.y;

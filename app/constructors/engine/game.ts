@@ -101,7 +101,7 @@ export class GameConstructor implements IGame {
 
     // Update player actions
     const direction = this.controls.joystick.getDirection();
-    this.player.update(direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
+    this.player.update(this.player.id, direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
     
     this.camera.x = this.player.position.x - this.canvas.canvas.width / 2;
     this.camera.y = this.player.position.y - this.canvas.canvas.height / 2;
