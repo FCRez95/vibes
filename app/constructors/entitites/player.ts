@@ -26,7 +26,7 @@ export class Player implements PlayerModel {
   private readonly UPDATE_INTERVAL: number = 500; // Increase update interval to 500ms
   private lastPosition: IPosition = { x: 0, y: 0 };
   private readonly POSITION_CHANGE_THRESHOLD = 2; // Only update if position changed by this many pixels
-  private readonly INTERPOLATION_SPEED = 0.15; // Controls how fast the interpolation happens (0-1)
+  private readonly INTERPOLATION_SPEED = 0.08; // Controls how fast the interpolation happens (0-1)
   private isLocalPlayer: boolean;
 
   constructor(
