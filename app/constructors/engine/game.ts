@@ -62,6 +62,19 @@ export class GameConstructor implements IGame {
     });
   }
 
+  // Add method to update online player positions
+  updateOnlinePlayer(playerId: number, x: number, y: number, health: number, mana: number): void {
+    if (!this.onlinePlayers) return;
+
+    const onlinePlayer = this.onlinePlayers.find(p => p.id === playerId);
+    if (onlinePlayer) {
+      onlinePlayer.position.x = x;
+      onlinePlayer.position.y = y;
+      onlinePlayer.health = health;
+      onlinePlayer.mana = mana;
+    }
+  }
+
   update(): void {
     if (this.isGameOver) {
       return;

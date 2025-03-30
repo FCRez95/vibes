@@ -69,11 +69,17 @@ export default function GamePage() {
               if (index !== -1) {
                 const updatedPlayers = [...prevPlayers];
                 updatedPlayers[index] = { ...updatedPlayers[index], position_x, position_y, health, mana, online };
+                
+                // Update the game instance with new player position
+                if (gameInstanceRef.current) {
+                  gameInstanceRef.current.updateOnlinePlayer(id, position_x, position_y, health, mana);
+                }
+                
                 return updatedPlayers;
               } else {
                 return [...prevPlayers, { id, position_x, position_y, health, max_health, mana, max_mana, last_attack_time, online, name }];
               }
-            })
+            });
           }
         }
       )
@@ -82,7 +88,7 @@ export default function GamePage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedPlayer]);
+  }, [selectedPlayer, gameInstanceRef]);
 
   // Function to save game state and character progress
   const saveGameState = async (): Promise<boolean> => {
