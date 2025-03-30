@@ -94,7 +94,8 @@ export class GameConstructor implements IGame {
     // Update online players
     this.onlinePlayers?.forEach(character => {
       if (character.id !== this.player.id) {
-        character.update(direction, this.map, this.monsters, this.controls.attack.getSelectedTarget());
+        console.log('Updating online player', character.id);
+        character.update({x: character.position.x, y: character.position.y}, this.map, this.monsters, this.controls.attack.getSelectedTarget());
       }
     });
 
