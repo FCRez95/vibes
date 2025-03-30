@@ -68,8 +68,10 @@ export class GameConstructor implements IGame {
 
     const onlinePlayer = this.onlinePlayers.find(p => p.id === playerId);
     if (onlinePlayer) {
-      onlinePlayer.position.x = x;
-      onlinePlayer.position.y = y;
+      // Use smooth movement for position updates
+      onlinePlayer.updateTargetPosition(x, y);
+      
+      // Instant updates for health and mana
       onlinePlayer.health = health;
       onlinePlayer.mana = mana;
     }
