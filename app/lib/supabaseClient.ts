@@ -92,7 +92,7 @@ export const getCurrentUser = async () => {
 
 export const fetchUserCharacters = async (userId: string) => {
   const { data, error } = await supabase
-    .from('Player')
+    .from('all_players')
     .select('*')
     .eq('user_id', userId);
   return { data, error };
@@ -100,7 +100,7 @@ export const fetchUserCharacters = async (userId: string) => {
 
 export const createCharacter = async (userId: string, name: string) => {
   const { data, error } = await supabase
-    .from('Player')
+    .from('all_players')
     .insert([
       {
         user_id: userId,
@@ -120,7 +120,7 @@ export const createCharacter = async (userId: string, name: string) => {
 
 export const deleteCharacter = async (characterId: number) => {
   const { error } = await supabase
-    .from('Player')
+    .from('all_players')
     .delete()
     .eq('id', characterId);
   return { error };
@@ -162,7 +162,7 @@ export const createCharacterSkills = async (playerId: number) => {
 
 export const fetchCharacter = async (characterId: number) => {
   const { data, error } = await supabase
-    .from('Player')
+    .from('all_players')
     .select('*, skills(*), equipped_items(*), inventory(*)')
     .eq('id', characterId);
   return { data, error };
@@ -181,7 +181,7 @@ export const updateCharacter = async (
   }
 ) => {
   const { data, error } = await supabase
-    .from('Player')
+    .from('all_players')
     .update(characterData)
     .eq('id', characterId)
     .select();
@@ -202,7 +202,7 @@ export const updateCharacterSkills = async (
 
 export const fetchOnlineCharacters = async () => {
   const { data, error } = await supabase
-    .from('Player')
+    .from('all_players')
     .select('*, skills(*), equipped_items(*), inventory(*)')
     .eq('online', true);
   return { data, error };

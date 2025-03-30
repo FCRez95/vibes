@@ -9,7 +9,7 @@ import { ItemModel } from '../models/game/entities/items-model';
 import { EquippedItemsModel } from '../models/game/entities/player-model';
 import { SkillsModel } from '../models/game/entities/skill-model';
 import { useRouter } from 'next/navigation';
-import { Character, fetchCharacter, fetchOnlineCharacters, updateCharacter, updateCharacterSkills } from '../lib/supabaseClient';
+import { Character, fetchCharacter, fetchOnlineCharacters, supabase, updateCharacter, updateCharacterSkills } from '../lib/supabaseClient';
 
 export default function GamePage() {
   const router = useRouter();
@@ -44,6 +44,45 @@ export default function GamePage() {
     }
     fetchOnlinePlayers();
   }, [router]);
+
+  // handle online players
+  useEffect(() => {
+    const channel = supabase
+      .channel('all_players')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'all_players',
+        },
+        (payload) => {
+          const { id, position_x, position_y, health, max_health, mana, max_mana, last_attack_time, online, name } = payload.new as Character;
+          
+          if (id !== selectedPlayer?.id) {
+            // Update online players that are not the selected player
+            setOnlineCharacters((prevPlayers) => {
+              const index = prevPlayers.findIndex(
+                (player) => player.id === id
+              );
+
+              if (index !== -1) {
+                const updatedPlayers = [...prevPlayers];
+                updatedPlayers[index] = { ...updatedPlayers[index], position_x, position_y, health, mana, online };
+                return updatedPlayers;
+              } else {
+                return [...prevPlayers, { id, position_x, position_y, health, max_health, mana, max_mana, last_attack_time, online, name }];
+              }
+            })
+          }
+        }
+      )
+      .subscribe();
+  
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedPlayer]);
 
   // Function to save game state and character progress
   const saveGameState = async (): Promise<boolean> => {

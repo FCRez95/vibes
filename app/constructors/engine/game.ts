@@ -91,14 +91,6 @@ export class GameConstructor implements IGame {
     this.camera.x = this.player.position.x - this.canvas.canvas.width / 2;
     this.camera.y = this.player.position.y - this.canvas.canvas.height / 2;
 
-    // Update online players
-    this.onlinePlayers?.forEach(character => {
-      if (character.id !== this.player.id) {
-        console.log('Updating online player', character.id);
-        character.update({x: character.position.x, y: character.position.y}, this.map, this.monsters, this.controls.attack.getSelectedTarget());
-      }
-    });
-
     // Update lairs
     this.lairs.forEach(lair => {
       lair.update();
@@ -135,6 +127,13 @@ export class GameConstructor implements IGame {
 
     // Draw player with camera offset
     this.player.draw(this.canvas, this.camera);
+
+    // Draw online players with camera offset
+    this.onlinePlayers?.forEach(character => {
+      if (character.id !== this.player.id) {
+        character.draw(this.canvas, this.camera);
+      }
+    });
 
     this.map.drawMinimap(this.canvas, this.player);
 
