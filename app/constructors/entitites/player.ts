@@ -23,8 +23,10 @@ export class Player implements PlayerModel {
   lastAttackTime: number; // Timestamp of last attack
   online: boolean;
   private lastUpdateTime: number = 0;
-  private readonly UPDATE_INTERVAL: number = 100; // Update database every 100ms
+  private readonly UPDATE_INTERVAL: number = 500; // Increase update interval to 500ms
   private positionChanged: boolean = false;
+  private lastPosition: IPosition = { x: 0, y: 0 };
+  private readonly POSITION_CHANGE_THRESHOLD = 5; // Only update if position changed by this many pixels
 
   constructor(
     id: number,
@@ -149,8 +151,13 @@ export class Player implements PlayerModel {
   private async updatePlayerState(): Promise<void> {
     const now = Date.now();
     
-    // Only update if position changed and enough time has passed
-    if (this.positionChanged && now - this.lastUpdateTime >= this.UPDATE_INTERVAL) {
+    // Calculate position change
+    const dx = Math.abs(this.position.x - this.lastPosition.x);
+    const dy = Math.abs(this.position.y - this.lastPosition.y);
+    const positionChangedSignificantly = dx > this.POSITION_CHANGE_THRESHOLD || dy > this.POSITION_CHANGE_THRESHOLD;
+    
+    // Only update if position changed significantly and enough time has passed
+    if (positionChangedSignificantly && now - this.lastUpdateTime >= this.UPDATE_INTERVAL) {
       try {
         const characterData = {
           health: Math.round(this.health),
@@ -167,7 +174,7 @@ export class Player implements PlayerModel {
           console.error('Failed to update player state:', error);
         } else {
           this.lastUpdateTime = now;
-          this.positionChanged = false;
+          this.lastPosition = { ...this.position };
         }
       } catch (error) {
         console.error('Error updating player state:', error);
@@ -222,18 +229,20 @@ export class Player implements PlayerModel {
   }
 
   private checkCollision(x: number, y: number, monsters: MonsterModel[]): boolean {
-    const playerRadius = 20; // Player's collision radius
-    const monsterRadius = 15; // Monster's collision radius
+    const playerRadius = 20;
+    const monsterRadius = 15;
     const totalRadius = playerRadius + monsterRadius;
+    const totalRadiusSquared = totalRadius * totalRadius;
 
+    // Quick distance check using squared distance (avoiding square root)
     return monsters.some(monster => {
       if (monster.isDead()) return false;
       
       const dx = x - monster.position.x;
       const dy = y - monster.position.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      const distanceSquared = dx * dx + dy * dy;
       
-      return distance < totalRadius;
+      return distanceSquared < totalRadiusSquared;
     });
   }
 

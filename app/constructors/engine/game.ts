@@ -17,6 +17,9 @@ export class GameConstructor implements IGame {
   monsters: MonsterModel[];
   lairs: Lair[];
   controls: Controls;
+  private isMobile: boolean;
+  private readonly MOBILE_UPDATE_RATE = 30; // Lower update rate for mobile
+  private readonly DESKTOP_UPDATE_RATE = 60; // Higher update rate for desktop
 
   constructor(canvas: ICanvas, player: Player, onlinePlayers: Player[] | null) {
     this.canvas = canvas;
@@ -28,6 +31,11 @@ export class GameConstructor implements IGame {
     this.onlinePlayers = onlinePlayers;
     this.map = new Map(10000, 10000, lairPositions);
     this.controls = new Controls(canvas);
+    
+    // Detect if running on mobile
+    this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      typeof window !== 'undefined' ? window.navigator.userAgent : ''
+    );
     
     this.initGame();
   }
@@ -83,8 +91,10 @@ export class GameConstructor implements IGame {
       return;
     }
 
-    // Get all monsters from lairs
-    this.monsters = this.lairs.flatMap(lair => lair.currentMonsters);
+    // Get all monsters from lairs - optimize for mobile by reducing update frequency
+    if (!this.isMobile || Math.random() < 0.5) {
+      this.monsters = this.lairs.flatMap(lair => lair.currentMonsters);
+    }
 
     // Update controls
     this.controls.update();
@@ -92,8 +102,10 @@ export class GameConstructor implements IGame {
     // Update player position in attack controls
     this.controls.attack.setPlayerPosition(this.player.position);
 
-    // Update available targets for attack
-    this.controls.attack.setAvailableTargets(this.monsters);
+    // Update available targets for attack - optimize for mobile
+    if (!this.isMobile || Math.random() < 0.3) {
+      this.controls.attack.setAvailableTargets(this.monsters);
+    }
 
     // Update player actions
     const direction = this.controls.joystick.getDirection();
@@ -102,23 +114,29 @@ export class GameConstructor implements IGame {
     this.camera.x = this.player.position.x - this.canvas.canvas.width / 2;
     this.camera.y = this.player.position.y - this.canvas.canvas.height / 2;
 
-    // Update all players
-    this.onlinePlayers?.forEach(player => {
-      if (player.id === this.player.id) return;
-      player.updateOnlinePlayer(player.targetPosition);
-    });
+    // Update all players - optimize for mobile
+    if (!this.isMobile || Math.random() < 0.5) {
+      this.onlinePlayers?.forEach(player => {
+        if (player.id === this.player.id) return;
+        player.updateOnlinePlayer(player.targetPosition);
+      });
+    }
 
-    // Update lairs
-    this.lairs.forEach(lair => {
-      lair.update();
-    });
+    // Update lairs - optimize for mobile
+    if (!this.isMobile || Math.random() < 0.3) {
+      this.lairs.forEach(lair => {
+        lair.update();
+      });
+    }
 
-    // Update monsters
-    this.monsters.forEach(monster => {
+    // Update monsters - optimize for mobile by updating fewer monsters per frame
+    const monsterUpdateLimit = this.isMobile ? 5 : this.monsters.length;
+    for (let i = 0; i < Math.min(monsterUpdateLimit, this.monsters.length); i++) {
+      const monster = this.monsters[i];
       if (!monster.isDead()) {
         monster.update(this.player, this.map);
       }
-    });
+    }
   }
 
   draw(): void {
@@ -129,6 +147,7 @@ export class GameConstructor implements IGame {
       return;
     }
 
+    // Draw map with optimizations for mobile
     this.map.draw(this.canvas, this.camera);
 
     // Draw lairs
@@ -136,25 +155,42 @@ export class GameConstructor implements IGame {
       lair.draw(this.canvas);
     });
 
+    // Draw monsters with distance-based culling
+    const viewDistance = this.isMobile ? 800 : 1200;
     this.monsters.forEach(monster => {
       if (!monster.isDead()) {
-        monster.draw(this.canvas, this.camera);
+        const dx = monster.position.x - this.player.position.x;
+        const dy = monster.position.y - this.player.position.y;
+        const distanceSquared = dx * dx + dy * dy;
+        
+        if (distanceSquared <= viewDistance * viewDistance) {
+          monster.draw(this.canvas, this.camera);
+        }
       }
     });
 
     // Draw player with camera offset
     this.player.draw(this.canvas, this.camera);
 
-    // Draw online players with camera offset
+    // Draw online players with distance-based culling
     this.onlinePlayers?.forEach(character => {
       if (character.id !== this.player.id) {
-        character.draw(this.canvas, this.camera);
+        const dx = character.position.x - this.player.position.x;
+        const dy = character.position.y - this.player.position.y;
+        const distanceSquared = dx * dx + dy * dy;
+        
+        if (distanceSquared <= viewDistance * viewDistance) {
+          character.draw(this.canvas, this.camera);
+        }
       }
     });
 
-    this.map.drawMinimap(this.canvas, this.player);
+    // Draw minimap only on desktop or when explicitly requested on mobile
+    if (!this.isMobile) {
+      this.map.drawMinimap(this.canvas, this.player);
+    }
 
-    // Draw controls with camera
+    // Draw controls
     this.controls.draw(this.canvas, this.camera);
   }
 

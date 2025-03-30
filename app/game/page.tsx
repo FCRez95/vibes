@@ -65,16 +65,29 @@ export default function GamePage() {
     console.log('onlinePlayers', onlinePlayers);
     gameInstanceRef.current = new GameConstructor(canvas, player, onlinePlayers);
 
-    // Set up game loop
+    // Set up game loop with frame rate control
+    let lastTime = 0;
+    const targetFPS = 60;
+    const frameInterval = 1000 / targetFPS;
     let animationFrameId: number;
-    const gameLoop = () => {
-      if (gameInstanceRef.current) {
-        gameInstanceRef.current.update();
-        gameInstanceRef.current.draw();
+    
+    const gameLoop = (currentTime: number) => {
+      if (!lastTime) lastTime = currentTime;
+      
+      const deltaTime = currentTime - lastTime;
+      
+      if (deltaTime >= frameInterval) {
+        if (gameInstanceRef.current) {
+          gameInstanceRef.current.update();
+          gameInstanceRef.current.draw();
+        }
+        lastTime = currentTime - (deltaTime % frameInterval);
       }
+      
       animationFrameId = requestAnimationFrame(gameLoop);
     };
-    gameLoop();
+    
+    animationFrameId = requestAnimationFrame(gameLoop);
 
     // Cleanup
     return () => {
