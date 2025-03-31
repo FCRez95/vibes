@@ -24,9 +24,9 @@ export class Player implements PlayerModel {
   lastAttackTime: number; // Timestamp of last attack
   online: boolean;
   private lastUpdateTime: number = 0;
-  private readonly UPDATE_INTERVAL: number = 100; // Increase update interval to 500ms
+  private readonly UPDATE_INTERVAL: number = 50; // Increase update interval to 500ms
   private lastPosition: IPosition = { x: 0, y: 0 };
-  private readonly INTERPOLATION_SPEED = 0.15; // Controls how fast the interpolation happens (0-1)
+  private readonly INTERPOLATION_SPEED = 0.2; // Controls how fast the interpolation happens (0-1)
   private isLocalPlayer: boolean;
   private sprite: HTMLImageElement;
   private spriteLoaded: boolean = false;
