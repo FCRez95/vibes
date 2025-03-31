@@ -113,6 +113,7 @@ export default function GamePage() {
           if (id !== selectedPlayer?.id && gameInstanceRef.current) {
             // Update the game instance with new player position
             console.log('updating online player', id, name, position_x, position_y, health, mana, max_health, max_mana, last_attack_time, online);
+            console.log('Time now: ', Date());
             gameInstanceRef.current.updateOnlinePlayer(id, position_x, position_y, health, mana);
           }
         }

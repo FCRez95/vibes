@@ -24,10 +24,9 @@ export class Player implements PlayerModel {
   lastAttackTime: number; // Timestamp of last attack
   online: boolean;
   private lastUpdateTime: number = 0;
-  private readonly UPDATE_INTERVAL: number = 500; // Increase update interval to 500ms
+  private readonly UPDATE_INTERVAL: number = 100; // Increase update interval to 500ms
   private lastPosition: IPosition = { x: 0, y: 0 };
-  private readonly POSITION_CHANGE_THRESHOLD = 1; // Only update if position changed by this many pixels
-  private readonly INTERPOLATION_SPEED = 0.08; // Controls how fast the interpolation happens (0-1)
+  private readonly INTERPOLATION_SPEED = 0.15; // Controls how fast the interpolation happens (0-1)
   private isLocalPlayer: boolean;
   private sprite: HTMLImageElement;
   private spriteLoaded: boolean = false;
@@ -163,14 +162,10 @@ export class Player implements PlayerModel {
   // Update player state in database
   private async updatePlayerState(): Promise<void> {
     const now = Date.now();
-    
-    // Calculate position change
-    const dx = Math.abs(this.position.x - this.lastPosition.x);
-    const dy = Math.abs(this.position.y - this.lastPosition.y);
-    const positionChangedSignificantly = dx > this.POSITION_CHANGE_THRESHOLD || dy > this.POSITION_CHANGE_THRESHOLD;
+    console.log('Time now: ', Date());
     
     // Only update if position changed significantly and enough time has passed
-    if (positionChangedSignificantly && now - this.lastUpdateTime >= this.UPDATE_INTERVAL) {
+    if (now - this.lastUpdateTime >= this.UPDATE_INTERVAL) {
       try {
         const characterData = {
           health: Math.round(this.health),
