@@ -145,7 +145,7 @@ export default function GamePage() {
     const equipment: EquippedItemsModel = {
       helmet: { name: 'Tribal Helmet', type: 'helmet', defense: 1 },
       chestplate: { name: 'Chief Chestplate', type: 'chestplate', defense: 1 },
-      weapon: { name: 'Divine Axe', type: 'weapon', damage: 1, weaponType: 'axe' },
+      weapon: { name: 'Divine Axe', type: 'weapon', damageMin: 1, damageMax: 3, weaponType: 'axe' },
       shield: null,
       legs: null,
       boots: null,

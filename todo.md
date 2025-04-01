@@ -1,50 +1,65 @@
 # Vibing Game Todo List
 
-- [ ] New Character Creation
-  - [x] Design and implement character creation form
-  - [ ] Add character name validation
-  - [ ] Add character appearance customization
-  - [x] Set initial character stats
-  - [x] Implement character creation API endpoint
-  - [x] Add error handling and success messages
-
-## Data Persistence
-- [ ] Character Data Storage
-  - [x] Design database schema for characters
-  - [ ] Implement character save functionality
-  - [ ] Add auto-save feature
-  - [ ] Handle character data updates
-  - [ ] Implement data validation
-
-- [ ] Game State Management
-  - [ ] Track player position
-  - [ ] Save inventory state
-  - [ ] Save equipment state
-  - [ ] Save skills and experience
-  - [ ] Handle game state restoration
-
-## Graphics
-- [x] Terrain
-  - [x] Create Tiles
-    - [x] Grass
-    - [x] Water
-    - [x] Dirt
-    - [x] Rock
-    - [x] Sand
-  
+## Graphics 
   - Create Elements
    - [ ] Big Rock
    - [ ] Trees
 
   - [ ] Implement in Game
 
-## Additional Considerations
-- [ ] Security
-  - [ ] Implement proper password hashing
-  - [ ] Add session management
-  - [ ] Implement API authentication
-  - [ ] Add rate limiting for API endpoints
+## Player
+- [ ] Get reach
+- [ ] Get damage
+- [ ] Get cooldown
+- [ ] Get items stats
+- [ ] Improve game mechanics
+  - [ ] Attack function
+  - [ ] Attack through wall
 
+## Items
+- [x] Weappons
+  - [x] Crude Bow
+  - [x] Bone Axe
+  - [x] Bone Club
+  - [x] Rock
+  - [x] Wood Stick
+- [x] Armor
+  - [x] Shirt Rags
+  - [x] Pants Rags
+  - [x] Leather Hood
+  - [x] Leaf Shoes
+
+## Monsters
+- [ ] Control Global State
+  - [ ] Lairs
+    - [ ] Respawn timer
+    - [ ] Max monsters
+    - [ ] Monsters alive
+    - [ ] Location (x, y)
+    - [ ] Monster type
+    - [ ] Difficulty (Number of monsters)
+  - [ ] Monsters
+    - [ ] Target
+    - [ ] Health
+    - [ ] Max health
+    - [ ] Position (x, y)
+    - [ ] Monster type
+
+- [ ]Create Monsters
+  - [ ] Sprites
+    - [ ] Bat
+    - [ ] Rat
+    - [ ] Goblin
+    - [ ] Troll
+    - [ ] Orc
+  - Drop loot
+  - Add Name to Head
+
+- [ ] Improve mechanics
+  - [ ] Attack function
+  - [ ] Attack through wall
+
+## Additional Considerations
 - [ ] User Experience
   - [ ] Add loading states
   - [ ] Implement error boundaries

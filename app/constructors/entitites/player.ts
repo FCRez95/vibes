@@ -119,7 +119,7 @@ export class Player implements PlayerModel {
     let damage = 0;
     const weapon = this.equipment.weapon;
     if (weapon) {
-      damage = weapon.damage * (1 + this.skills[weapon.weaponType as keyof SkillsModel].level / 50) || 0;
+      damage = weapon.damageMin * (1 + this.skills[weapon.weaponType as keyof SkillsModel].level / 50) || 0;
 
       // Gain experience in the corresponding skill
       this.gainSkillExperience(weapon.weaponType as keyof SkillsModel, 5);

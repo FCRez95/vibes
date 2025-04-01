@@ -16,7 +16,8 @@ export interface ChestplateModel extends ItemModel {
 export interface WeaponModel extends ItemModel {
     name: string;
     weaponType: 'axe' | 'bow' | 'club' | 'throwing' | 'staff';
-    damage: number;
+    damageMin: number;
+    damageMax: number;
 }
 
 export interface ShieldModel extends ItemModel {
