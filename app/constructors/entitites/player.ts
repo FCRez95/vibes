@@ -25,7 +25,6 @@ export class Player implements PlayerModel {
   online: boolean;
   private lastUpdateTime: number = 0;
   private readonly UPDATE_INTERVAL: number = 50; // Increase update interval to 500ms
-  private lastPosition: IPosition = { x: 0, y: 0 };
   private readonly INTERPOLATION_SPEED = 0.2; // Controls how fast the interpolation happens (0-1)
   private isLocalPlayer: boolean;
   private sprite: HTMLImageElement;
@@ -182,7 +181,6 @@ export class Player implements PlayerModel {
           console.error('Failed to update player state:', error);
         } else {
           this.lastUpdateTime = now;
-          this.lastPosition = { ...this.position };
         }
       } catch (error) {
         console.error('Error updating player state:', error);
@@ -190,9 +188,9 @@ export class Player implements PlayerModel {
     }
   }
 
-  // Other online player actions
+  // Sync with server
   updateOnlinePlayer(targetPosition: IPosition | null): void {
-    if (!targetPosition || this.isLocalPlayer) return;
+    if (!targetPosition) return;
 
     // Update target position for interpolation
     this.targetPosition = targetPosition;

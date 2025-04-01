@@ -14,7 +14,7 @@ export class Map implements IMap {
   grid: ITerrain[][] = [];
   gridRows: number;
   gridCols: number;
-  monsterLairs: { x: number; y: number, difficulty: string }[];
+  monsterLairs: { x: number; y: number }[];
   templePosition: { x: number; y: number };
   TERRAIN: ITerrainTypes;
   private seed: number = 16789; // Fixed seed for consistent map generation
@@ -29,7 +29,7 @@ export class Map implements IMap {
   private templeImage: HTMLImageElement;
   private templeImageLoaded: boolean = false;
 
-  constructor(width: number, height: number, monsterLairs: { x: number; y: number, difficulty: string }[]) {
+  constructor(width: number, height: number, monsterLairs: { x: number; y: number }[]) {
     this.width = width;
     this.height = height;
     this.tileSize = 128;

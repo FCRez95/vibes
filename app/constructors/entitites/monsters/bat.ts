@@ -1,10 +1,12 @@
-import { ICanvas } from "../../models/game/engine/canvas";
-import { PlayerModel } from "../../models/game/entities/player-model";
-import { MonsterModel } from "../../models/game/entities/monster-model";
-import { IPosition } from "../../models/game/engine/position";
-import { IMap } from "../../models/game/engine/map";
+import { ICanvas } from "../../../models/game/engine/canvas";
+import { PlayerModel } from "../../../models/game/entities/player-model";
+import { MonsterModel } from "../../../models/game/entities/monster-model";
+import { IPosition } from "../../../models/game/engine/position";
+import { IMap } from "../../../models/game/engine/map";
+import batSprite from '../../../../public/assets/monsters/bat-gif.webp';
+import { updateMonster } from "../../../lib/supabaseClient";
 
-export class Monster implements MonsterModel {
+export class Bat implements MonsterModel {
   id: number;
   monster: string;
   health: number;
@@ -37,39 +39,50 @@ export class Monster implements MonsterModel {
     lastAttackTime: number | null;
   };
 
+  private sprite: HTMLImageElement;
+  private spriteLoaded: boolean = false;
+  private readonly SPRITE_WIDTH = 64;  // Width of the sprite
+  private readonly SPRITE_HEIGHT = 64; // Height of the sprite
+  private lastUpdateTime: number = 0;
+  private readonly UPDATE_INTERVAL: number = 50; // Increase update interval to 500ms
   private readonly INTERPOLATION_SPEED = 0.2; // Controls how fast the interpolation happens (0-1)
 
-  constructor(id: number, x: number = 0, y: number = 0) {
+  constructor(id: number, x: number = 0, y: number = 0, health: number = 25, lairX: number = 0, lairY: number = 0, target: PlayerModel | null = null) {
     this.id = id;
-    this.monster = "basic";
-    this.maxHealth = 50;
-    this.health = this.maxHealth;
+    this.monster = "Bat";
+    this.maxHealth = 25;
+    this.health = health;
     this.position = { x, y };
-    this.lairPosition = { x, y }; // Initialize lair position to monster's initial position
+    this.lairPosition = { x: lairX, y: lairY }; // Initialize lair position to monster's initial position
     this.stats = {
-      combat: 8,
-      running: 5,
-      magic: 3,
-      shield: 10
+      combat: 10,
+      running: 10,
+      magic: 1,
+      shield: 1
     };
     this.drops = [
       { item: "gold", chance: 0.8 },
-      { item: "health_potion", chance: 0.2 }
     ];
     this.behavior = {
-      type: "aggressive",
-      range: 50,
+      type: target ? "aggressive" : "passive",
+      range: 30,
+      target: target,
       attackPattern: "melee",
-      target: null,
       agroRange: 200, // Monster becomes aggressive when player is within 150 units
-      attackCooldown: 1000, // 1 second between attacks
-      lastAttackTime: 0,
+      attackCooldown: 500, // 1 second between attacks
+      lastAttackTime: 0
+    };
+    // Load sprite image
+    this.sprite = new Image();
+    this.sprite.src = batSprite.src;
+    this.sprite.onload = () => {
+      this.spriteLoaded = true;
     };
     this.updatedState = {
-      position: null,
+      position: {x, y},
       target: null,
-      health: null,
-      lastAttackTime: null
+      health: health,
+      lastAttackTime: 0
     };
   }
 
@@ -95,26 +108,79 @@ export class Monster implements MonsterModel {
     this.behavior.lastAttackTime = Date.now();
   }
 
-    // Sync with server
-    updateMonster(targetPosition: IPosition, health: number, lastAttackTime: number, target: PlayerModel | null): void {
-      this.health = health;
-      this.behavior.lastAttackTime = lastAttackTime;
-      this.behavior.target = target;
-  
-      if (!targetPosition) return;
-  
-      // Interpolate position
-      this.position.x += (targetPosition.x - this.position.x) * this.INTERPOLATION_SPEED;
-      this.position.y += (targetPosition.y - this.position.y) * this.INTERPOLATION_SPEED;
-  
-      this.behavior.lastAttackTime = lastAttackTime;
-      this.behavior.target = target;
-      this.behavior.type = target ? 'aggressive' : 'passive';
-    }
-  
+  checkAggro(onlinePlayers: PlayerModel[] | null): PlayerModel | null {
+    if (!onlinePlayers) return null;
+    let i = 0
+    let playerToAttack: PlayerModel | null = null;
 
-  update(map: IMap): void {
-    if (this.behavior.target) {
+    while (i < onlinePlayers.length && playerToAttack === null) {
+      const player = onlinePlayers[i];
+      const dx = player.position.x - this.position.x;
+      const dy = player.position.y - this.position.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance <= this.behavior.agroRange) {
+        playerToAttack = player;
+      }
+      i++;
+    }
+    return playerToAttack;
+  }
+  // Update player state in database
+  private async updateBatState(): Promise<void> {
+    const now = Date.now();
+    console.log('Time now: ', Date());
+    
+    // Only update if position changed significantly and enough time has passed
+    if (now - this.lastUpdateTime >= this.UPDATE_INTERVAL) {
+      try {
+        const batData = {
+          id: this.id,
+          health: Math.round(this.health),
+          position_x: Math.round(this.position.x),
+          position_y: Math.round(this.position.y),
+          last_attack_time: this.behavior.lastAttackTime,
+          target: this.behavior.target?.id
+        };
+
+        const { error } = await updateMonster(this.id, batData);
+        if (error) {
+          console.error('Failed to update bat state:', error);
+        } else {
+          this.lastUpdateTime = now;
+        }
+      } catch (error) {
+        console.error('Error updating player state:', error);
+      }
+    }
+  }
+
+  // Sync with server
+  updateMonster(targetPosition: IPosition, health: number, lastAttackTime: number, target: PlayerModel | null): void {
+    this.health = health;
+    this.behavior.lastAttackTime = lastAttackTime;
+    this.behavior.target = target;
+
+    if (!targetPosition) return;
+
+    // Interpolate position
+    this.position.x += (targetPosition.x - this.position.x) * this.INTERPOLATION_SPEED;
+    this.position.y += (targetPosition.y - this.position.y) * this.INTERPOLATION_SPEED;
+
+    this.behavior.lastAttackTime = lastAttackTime;
+    this.behavior.target = target;
+    this.behavior.type = target ? 'aggressive' : 'passive';
+  }
+
+  update(map: IMap, onlinePlayers: PlayerModel[] | null): void {
+    if (this.behavior.type === 'passive') {
+      const playerToAttack = this.checkAggro(onlinePlayers);
+      if (playerToAttack) {
+        this.behavior.target = playerToAttack;
+        this.behavior.type = 'aggressive';
+        this.updateBatState();
+      }
+    } else if (this.behavior.type === 'aggressive' && this.behavior.target) {
       // Calculate distance to player
       const dxToPlayer = this.behavior.target.position.x - this.position.x;
       const dyToPlayer = this.behavior.target.position.y - this.position.y;
@@ -126,7 +192,7 @@ export class Monster implements MonsterModel {
       const distanceToLair = Math.sqrt(dxToLair * dxToLair + dyToLair * dyToLair);
 
       // If monster is too far from lair, return to it
-      if (distanceToLair > 500) {
+      if (distanceToLair > 1000) {
         const angle = Math.atan2(dyToLair, dxToLair);
         const newX = this.position.x + Math.cos(angle) * this.stats.running/3;
         const newY = this.position.y + Math.sin(angle) * this.stats.running/3;
@@ -135,6 +201,9 @@ export class Monster implements MonsterModel {
         if (!this.checkCollision(newX, newY, this.behavior.target) && map.isWalkable(newX, newY)) {
           this.position.x = newX;
           this.position.y = newY;
+          this.behavior.target = null;
+          this.behavior.type = 'passive';
+          this.updateBatState();
         }
       }
       // If player is in agro range, chase and attack them
@@ -148,6 +217,7 @@ export class Monster implements MonsterModel {
           // Direct path is clear, move towards player
           this.position.x = newX;
           this.position.y = newY;
+          this.updateBatState();
         } else {
           // Direct path is blocked, try to find a path around obstacles
           const possibleAngles = [
@@ -165,6 +235,7 @@ export class Monster implements MonsterModel {
               this.position.x = testX;
               this.position.y = testY;
               foundPath = true;
+              this.updateBatState();
               break;
             }
           }
@@ -185,6 +256,7 @@ export class Monster implements MonsterModel {
                 this.position.x = wallX;
                 this.position.y = wallY;
                 foundPath = true;
+                this.updateBatState();
                 break;
               }
             }
@@ -195,6 +267,12 @@ export class Monster implements MonsterModel {
         if (distanceToPlayer <= this.behavior.range) {
           this.attack(this.behavior.target);
         }
+      // If player is not in agro range, return original state
+      } else {
+        console.log('Returning to lair 1:', this.behavior.target?.name);
+        this.behavior.type = 'passive';
+        this.behavior.target = null;
+        this.updateBatState();
       }
     }
   }
@@ -226,9 +304,29 @@ export class Monster implements MonsterModel {
       );
     }
 
-    // Draw monster with different colors based on state
-    const monsterColor = this.behavior.type === 'aggressive' ? '#ff0000' : '#800000';
-    canvas.drawCircle(screenX, screenY, 10, monsterColor);
+    // Draw bat sprite or fallback circle
+    if (this.spriteLoaded) {
+      canvas.drawImage(
+        this.sprite,
+        screenX - this.SPRITE_WIDTH / 2,
+        screenY - this.SPRITE_HEIGHT / 2,
+        this.SPRITE_WIDTH,
+        this.SPRITE_HEIGHT
+      );
+    } else {
+      // Draw a circle as fallback while sprite is loading
+      canvas.drawCircle(screenX, screenY, 15, '#800000');
+    }
+
+    // Draw name above player
+    canvas.drawText(
+      this.monster,
+      screenX,
+      screenY - this.SPRITE_HEIGHT - 15,
+      '#ffffff',
+      12,
+      'Arial'
+    );
     
     // Draw health bar
     const healthBarWidth = 40;

@@ -33,25 +33,24 @@
 - [ ] Control Global State
   - [ ] Lairs
     - [ ] Respawn timer
-    - [ ] Max monsters
-    - [ ] Monsters alive
-    - [ ] Location (x, y)
-    - [ ] Monster type
-    - [ ] Difficulty (Number of monsters)
+    - [x] Max monsters
+    - [x] Monsters alive
+    - [x] Location (x, y)
+    - [x] Monster type
   - [ ] Monsters
-    - [ ] Target
-    - [ ] Health
-    - [ ] Max health
-    - [ ] Position (x, y)
-    - [ ] Monster type
+    - [x] Target
+    - [x] Health
+    - [x] Max health
+    - [x] Position (x, y)
+    - [x] Monster type
 
 - [ ]Create Monsters
   - [ ] Sprites
-    - [ ] Bat
-    - [ ] Rat
-    - [ ] Goblin
-    - [ ] Troll
-    - [ ] Orc
+    - [x] Bat
+    - [x] Rat
+    - [x] Goblin
+    - [x] Troll
+    - [x] Orc
   - Drop loot
   - Add Name to Head
 

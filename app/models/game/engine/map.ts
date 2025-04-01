@@ -19,7 +19,7 @@ export interface IMap {
   width: number;
   height: number;
   tileSize: number;
-  monsterLairs: { x: number; y: number, difficulty: string }[];
+  monsterLairs: { x: number; y: number}[];
   templePosition: { x: number; y: number };
 
   isWalkable(x: number, y: number): boolean;

@@ -1,9 +1,10 @@
 import { ICanvas } from './canvas';
 import { IMap } from './map';
 import { PlayerModel } from '../entities/player-model';
-import { MonsterModel } from '../entities/monster-model';
 import { ControlsModel } from './controls';
-
+import { MonsterModel } from '../entities/monster-model';
+import { LairModel } from '../entities/lair-model';
+import { DBLair, DBMonster } from '@/app/lib/supabaseClient';
 
 export interface ICamera {
   x: number;
@@ -17,10 +18,12 @@ export interface IGame {
   onlinePlayers: PlayerModel[] | null;
   camera: ICamera;
   monsters: MonsterModel[];
+  lairs: LairModel[];
   controls: ControlsModel;
   isGameOver: boolean;
-  
-  initGame(): void;
+  isMobile: boolean;
+
+  initGame(lairs: DBLair[], monsters: DBMonster[]): void;
   update(): void;
   draw(): void;
   handleTouchStart(x: number, y: number): void;

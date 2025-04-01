@@ -30,6 +30,7 @@ export interface PlayerModel {
     online: boolean;
     
     isDead(): boolean;
-    update(direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel): void;
+    updateOnlinePlayer(targetPosition: IPosition | null): void;
+    update(direction: { x: number; y: number }, map: IMap, monsters: MonsterModel[], selectedMonster: MonsterModel | null): void;
     draw(canvas: ICanvas, camera: { x: number; y: number }): void;
 } 

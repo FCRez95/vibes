@@ -1,10 +1,11 @@
-import { ICanvas } from "../../models/game/engine/canvas";
-import { PlayerModel } from "../../models/game/entities/player-model";
-import { MonsterModel } from "../../models/game/entities/monster-model";
-import { IPosition } from "../../models/game/engine/position";
-import { IMap } from "../../models/game/engine/map";
+import { ICanvas } from "../../../models/game/engine/canvas";
+import { PlayerModel } from "../../../models/game/entities/player-model";
+import { MonsterModel } from "../../../models/game/entities/monster-model";
+import { IPosition } from "../../../models/game/engine/position";
+import { IMap } from "../../../models/game/engine/map";
+import ratSprite from '../../../../public/assets/monsters/ratgif.webp';
 
-export class Monster implements MonsterModel {
+export class Bat implements MonsterModel {
   id: number;
   monster: string;
   health: number;
@@ -30,47 +31,41 @@ export class Monster implements MonsterModel {
     attackCooldown: number; // Time between attacks in milliseconds
     lastAttackTime: number; // Timestamp of last attack
   };
-  updatedState: {
-    position: IPosition | null;
-    target: PlayerModel | null;
-    health: number | null;
-    lastAttackTime: number | null;
-  };
+  private sprite: HTMLImageElement;
+  private spriteLoaded: boolean = false;
+  private readonly SPRITE_WIDTH = 64;  // Width of the sprite
+  private readonly SPRITE_HEIGHT = 64; // Height of the sprite
 
-  private readonly INTERPOLATION_SPEED = 0.2; // Controls how fast the interpolation happens (0-1)
-
-  constructor(id: number, x: number = 0, y: number = 0) {
+  constructor(id: number, x: number = 0, y: number = 0, lairX: number = 0, lairY: number = 0) {
     this.id = id;
-    this.monster = "basic";
-    this.maxHealth = 50;
+    this.monster = "Rat";
+    this.maxHealth = 40;
     this.health = this.maxHealth;
     this.position = { x, y };
-    this.lairPosition = { x, y }; // Initialize lair position to monster's initial position
+    this.lairPosition = { x: lairX, y: lairY }; // Initialize lair position to monster's initial position
     this.stats = {
-      combat: 8,
-      running: 5,
-      magic: 3,
-      shield: 10
+      combat: 2,
+      running: 8,
+      magic: 1,
+      shield: 2
     };
     this.drops = [
       { item: "gold", chance: 0.8 },
-      { item: "health_potion", chance: 0.2 }
     ];
     this.behavior = {
       type: "aggressive",
-      range: 50,
+      range: 30,
+      target: null,
       attackPattern: "melee",
-      target: null,
-      agroRange: 200, // Monster becomes aggressive when player is within 150 units
-      attackCooldown: 1000, // 1 second between attacks
-      lastAttackTime: 0,
+      agroRange: 300, // Monster becomes aggressive when player is within 150 units
+      attackCooldown: 800, // 1 second between attacks
+      lastAttackTime: 0
     };
-    this.updatedState = {
-      position: null,
-      target: null,
-      health: null,
-      lastAttackTime: null
-    };
+
+    // Load sprite image
+    this.sprite = new Image();
+    this.sprite.src = ratSprite.src;
+    this.spriteLoaded = true;
   }
 
   isDead(): boolean {
@@ -95,29 +90,11 @@ export class Monster implements MonsterModel {
     this.behavior.lastAttackTime = Date.now();
   }
 
-    // Sync with server
-    updateMonster(targetPosition: IPosition, health: number, lastAttackTime: number, target: PlayerModel | null): void {
-      this.health = health;
-      this.behavior.lastAttackTime = lastAttackTime;
-      this.behavior.target = target;
-  
-      if (!targetPosition) return;
-  
-      // Interpolate position
-      this.position.x += (targetPosition.x - this.position.x) * this.INTERPOLATION_SPEED;
-      this.position.y += (targetPosition.y - this.position.y) * this.INTERPOLATION_SPEED;
-  
-      this.behavior.lastAttackTime = lastAttackTime;
-      this.behavior.target = target;
-      this.behavior.type = target ? 'aggressive' : 'passive';
-    }
-  
-
-  update(map: IMap): void {
-    if (this.behavior.target) {
+  update(player: PlayerModel, map: IMap): void {
+    if (this.behavior.type === 'aggressive') {
       // Calculate distance to player
-      const dxToPlayer = this.behavior.target.position.x - this.position.x;
-      const dyToPlayer = this.behavior.target.position.y - this.position.y;
+      const dxToPlayer = player.position.x - this.position.x;
+      const dyToPlayer = player.position.y - this.position.y;
       const distanceToPlayer = Math.sqrt(dxToPlayer * dxToPlayer + dyToPlayer * dyToPlayer);
 
       // Calculate distance to lair
@@ -132,7 +109,7 @@ export class Monster implements MonsterModel {
         const newY = this.position.y + Math.sin(angle) * this.stats.running/3;
         
         // Only move if not colliding with player and tile is walkable
-        if (!this.checkCollision(newX, newY, this.behavior.target) && map.isWalkable(newX, newY)) {
+        if (!this.checkCollision(newX, newY, player) && map.isWalkable(newX, newY)) {
           this.position.x = newX;
           this.position.y = newY;
         }
@@ -144,7 +121,7 @@ export class Monster implements MonsterModel {
         const newX = this.position.x + Math.cos(angle) * this.stats.running/3;
         const newY = this.position.y + Math.sin(angle) * this.stats.running/3;
         
-        if (!this.checkCollision(newX, newY, this.behavior.target) && map.isWalkable(newX, newY)) {
+        if (!this.checkCollision(newX, newY, player) && map.isWalkable(newX, newY)) {
           // Direct path is clear, move towards player
           this.position.x = newX;
           this.position.y = newY;
@@ -160,7 +137,7 @@ export class Monster implements MonsterModel {
             const testX = this.position.x + Math.cos(testAngle) * this.stats.running/3;
             const testY = this.position.y + Math.sin(testAngle) * this.stats.running/3;
             
-            if (!this.checkCollision(testX, testY, this.behavior.target) && map.isWalkable(testX, testY)) {
+            if (!this.checkCollision(testX, testY, player) && map.isWalkable(testX, testY)) {
               // Found a valid path
               this.position.x = testX;
               this.position.y = testY;
@@ -181,7 +158,7 @@ export class Monster implements MonsterModel {
               const wallX = this.position.x + Math.cos(wallAngle) * this.stats.running/3;
               const wallY = this.position.y + Math.sin(wallAngle) * this.stats.running/3;
               
-              if (!this.checkCollision(wallX, wallY, this.behavior.target) && map.isWalkable(wallX, wallY)) {
+              if (!this.checkCollision(wallX, wallY, player) && map.isWalkable(wallX, wallY)) {
                 this.position.x = wallX;
                 this.position.y = wallY;
                 foundPath = true;
@@ -193,7 +170,7 @@ export class Monster implements MonsterModel {
 
         // Attack if in range
         if (distanceToPlayer <= this.behavior.range) {
-          this.attack(this.behavior.target);
+          this.attack(player);
         }
       }
     }
@@ -226,9 +203,14 @@ export class Monster implements MonsterModel {
       );
     }
 
-    // Draw monster with different colors based on state
-    const monsterColor = this.behavior.type === 'aggressive' ? '#ff0000' : '#800000';
-    canvas.drawCircle(screenX, screenY, 10, monsterColor);
+    // Draw rat sprite
+    canvas.drawImage(
+      this.sprite,
+      screenX - this.SPRITE_WIDTH / 2,
+      screenY - this.SPRITE_HEIGHT / 2,
+      this.SPRITE_WIDTH,
+      this.SPRITE_HEIGHT
+    );
     
     // Draw health bar
     const healthBarWidth = 40;

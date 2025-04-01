@@ -8,7 +8,7 @@ import { Player } from '../constructors/entitites/player';
 import { EquippedItemsModel } from '../models/game/entities/player-model';
 import { SkillsModel } from '../models/game/entities/skill-model';
 import { useRouter } from 'next/navigation';
-import { Character, fetchCharacter, fetchOnlineCharacters, supabase, updateCharacter, updateCharacterSkills } from '../lib/supabaseClient';
+import { Character, DBLair, DBMonster, fetchCharacter, fetchLairs, fetchMonsters, fetchOnlineCharacters, supabase, updateCharacter, updateCharacterSkills } from '../lib/supabaseClient';
 
 export default function GamePage() {
   const router = useRouter();
@@ -16,8 +16,10 @@ export default function GamePage() {
   const gameInstanceRef = useRef<GameConstructor | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<Character | null>(null);
   const [onlineCharacters, setOnlineCharacters] = useState<Character[]>([]);
+  const [lairs, setLairs] = useState<DBLair[]>([]);
+  const [monsters, setMonsters] = useState<DBMonster[]>([]);
   
-  // Handle selected character and initial online players fetch
+  // Handle selected character, initial online players, lairs and monsters fetch
   useEffect(() => {
     // Load character from database
     const selectedCharacter = JSON.parse(localStorage.getItem('selectedCharacter') || '{}');
@@ -41,6 +43,20 @@ export default function GamePage() {
       setOnlineCharacters(onlinePlayers as Character[]);
     }
     fetchOnlinePlayers();
+
+    const fetchLairsInfo = async () => {
+      const { data: lairs, error: lairsError } = await fetchLairs();
+      if (lairsError) throw lairsError;
+      setLairs(lairs as DBLair[]);
+    }
+    fetchLairsInfo();
+
+    const fetchMonstersInfo = async () => {
+      const { data: monsters, error: monstersError } = await fetchMonsters();
+      if (monstersError) throw monstersError;
+      setMonsters(monsters as DBMonster[]);
+    }
+    fetchMonstersInfo();
   }, [router]);
 
   // Initialize game only when selectedPlayer changes
@@ -63,7 +79,9 @@ export default function GamePage() {
     const player = initializePlayer(selectedPlayer, true);
     const onlinePlayers = onlineCharacters.map(character => initializePlayer(character, false));
     console.log('onlinePlayers', onlinePlayers);
-    gameInstanceRef.current = new GameConstructor(canvas, player, onlinePlayers);
+    console.log('monstersNow', monsters);
+    console.log('lairsNow', lairs);
+    gameInstanceRef.current = new GameConstructor(canvas, player, onlinePlayers, monsters, lairs);
 
     // Set up game loop with frame rate control
     let lastTime = 0;
@@ -110,7 +128,7 @@ export default function GamePage() {
         (payload) => {
           const { id, position_x, position_y, health, max_health, mana, max_mana, last_attack_time, online, name } = payload.new as Character;
           
-          if (id !== selectedPlayer?.id && gameInstanceRef.current) {
+          if (gameInstanceRef.current) {
             // Update the game instance with new player position
             console.log('updating online player', id, name, position_x, position_y, health, mana, max_health, max_mana, last_attack_time, online);
             console.log('Time now: ', Date());
@@ -124,6 +142,35 @@ export default function GamePage() {
       supabase.removeChannel(channel);
     };
   }, [selectedPlayer?.id]); // Only depend on selectedPlayer.id
+
+  // Handle monsters updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('monsters')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'monsters',
+          },
+          (payload) => {
+            const { id, monster, position_x, position_y, health, max_health, target, last_attack_time } = payload.new as DBMonster;
+            
+            if (gameInstanceRef.current) {
+              // Update the game instance with new player position
+              console.log('updating monster', id, monster, position_x, position_y, health, max_health, target, last_attack_time);
+              console.log('Time now: ', Date());
+              gameInstanceRef.current.syncMonsters({id, monster, position_x, position_y, health, max_health, target, last_attack_time});
+            }
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }, [selectedPlayer?.id]); // Only depend on selectedPlayer.id
 
   // Helper function to initialize a player
   // Calculate max experience for each skill based on the level -- 150 * level
@@ -239,33 +286,6 @@ export default function GamePage() {
       return false;
     }
   };
-
-  // Prevent zoom on mobile devices
-  useEffect(() => {
-    const preventZoom = (e: TouchEvent) => {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    };
-
-    const preventDefaultZoom = (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        e.preventDefault();
-      }
-    };
-
-    // Add event listeners
-    document.addEventListener('touchstart', preventZoom, { passive: false });
-    document.addEventListener('touchmove', preventZoom, { passive: false });
-    document.addEventListener('wheel', preventDefaultZoom, { passive: false });
-
-    // Cleanup
-    return () => {
-      document.removeEventListener('touchstart', preventZoom);
-      document.removeEventListener('touchmove', preventZoom);
-      document.removeEventListener('wheel', preventDefaultZoom);
-    };
-  }, []);
 
   return (
     <>

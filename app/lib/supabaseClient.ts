@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { Monster } from '../constructors/entitites/monster';
 
 export const supabase = createClient(
   'https://altmfkrgfocekmlersvz.supabase.co',
@@ -62,6 +63,30 @@ export interface Character {
   skills?: Skills[];
   equipped_items?: EquippedItems[];
   inventory?: Inventory[];
+}
+
+export interface DBLair {
+  id: number;
+  name: string;
+  position_x: number;
+  position_y: number;
+  monster_type: string;
+  max_monsters: number;
+  monsters_alive: number;
+  monsters: DBMonster[];
+  spawn_timer: number;  
+  radius: number;
+}
+
+export interface DBMonster {
+  id: number;
+  monster: number;
+  health: number;
+  max_health: number;
+  position_x: number;
+  position_y: number;
+  target: number;
+  last_attack_time: number;
 }
 
 export const signUp = async (email: string, password: string) => {
@@ -205,5 +230,31 @@ export const fetchOnlineCharacters = async () => {
     .from('all_players')
     .select('*, skills(*), equipped_items(*), inventory(*)')
     .eq('online', true);
+  return { data, error };
+}
+
+export const fetchLairs = async () => {
+  const { data, error } = await supabase
+    .from('lairs')
+    .select('*, monsters(*)');
+  return { data, error };
+}
+
+export const fetchMonsters = async () => {
+  const { data, error } = await supabase
+    .from('monsters')
+    .select('*');
+  return { data, error };
+}
+
+export const updateMonster = async (
+  monsterId: number,
+  monsterData: Partial<Monster>
+) => {
+  const { data, error } = await supabase
+    .from('monsters')
+    .update(monsterData)
+    .eq('id', monsterId)
+    .select();
   return { data, error };
 }

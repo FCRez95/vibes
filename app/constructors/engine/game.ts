@@ -1,35 +1,39 @@
 import { IGame, ICamera } from '../../models/game/engine/game';
 import { ICanvas } from '../../models/game/engine/canvas';
 import { Map } from '../interface/map';
-import { Player } from '../entitites/player';
 import { Controls } from './controls';
 import { Lair } from '../entitites/lair';
 import { MonsterModel } from '../../models/game/entities/monster-model';
-import { lairPositions } from '../interface/all-lairs';
+import { PlayerModel } from '../../models/game/entities/player-model';
+import { LairModel } from '../../models/game/entities/lair-model';
+import { DBLair, DBMonster } from '../../lib/supabaseClient';
+import { Bat } from '../entitites/monsters/bat';
 
 export class GameConstructor implements IGame {
   canvas: ICanvas;
   isGameOver: boolean;
   map: Map;
-  player: Player;
-  onlinePlayers: Player[] | null;
+  player: PlayerModel;
+  onlinePlayers: PlayerModel[] | null;
   camera: ICamera;
   monsters: MonsterModel[];
-  lairs: Lair[];
+  lairs: LairModel[];
   controls: Controls;
   public isMobile: boolean;
   private readonly MOBILE_UPDATE_RATE = 30; // Lower update rate for mobile
   private readonly DESKTOP_UPDATE_RATE = 60; // Higher update rate for desktop
   private readonly VERTICAL_OFFSET = 0.4; // Player will be 30% from the bottom
 
-  constructor(canvas: ICanvas, player: Player, onlinePlayers: Player[] | null) {
+  constructor(canvas: ICanvas, player: PlayerModel, onlinePlayers: PlayerModel[] | null, monsters: DBMonster[], lairs: DBLair[]) {
     this.canvas = canvas;
     this.isGameOver = false;
-    this.monsters = [];
-    this.lairs = [];
     this.camera = { x: 0, y: 0 };
     this.player = player;
     this.onlinePlayers = onlinePlayers;
+    this.monsters = [];
+    this.lairs = [];
+    
+    const lairPositions = lairs.map(lair => ({x: lair.position_x, y: lair.position_y}));
     this.map = new Map(14000, 14000, lairPositions);
     this.controls = new Controls(canvas);
     
@@ -38,10 +42,10 @@ export class GameConstructor implements IGame {
       typeof window !== 'undefined' ? window.navigator.userAgent : ''
     );
     
-    this.initGame();
+    this.initGame(lairs);
   }
 
-  initGame(): void {   
+  initGame(lairs: DBLair[]): void {   
     // Camera position with vertical offset (player will be 30% from the bottom)
     this.camera = {
       x: this.player.position.x - this.canvas.canvas.width / 2,
@@ -49,26 +53,31 @@ export class GameConstructor implements IGame {
     };
 
     // Initialize lairs
-    this.initializeLairs();
+    this.initializeLairs(lairs);
   }
 
-  private initializeLairs(): void {
-    this.lairs = [];
-    this.monsters = [];
-
-    lairPositions.forEach(({ x, y, difficulty }) => {
-      const lair = new Lair(x, y, difficulty);
+  // Initialize lairs and monsters
+  private initializeLairs(lairs: DBLair[]): void {
+    // Utilize the lairs and monsters received from the database
+    lairs.forEach(({id, name, position_x, position_y, monster_type, max_monsters, monsters_alive, spawn_timer, radius, monsters }) => {
+      console.log('INITIALIZING LAIR: ', name, 'with', monsters.length, 'monsters');
+      const initMonsters = monsters.map(monster => {
+        console.log('INITIALIZING MONSTER: ', monster.id, 'at position', monster.position_x, monster.position_y);
+        return new Bat(
+          monster.id,
+          monster.position_x,
+          monster.position_y,
+          monster.health,
+          position_x,  // lair x position
+          position_y,  // lair y position
+          monster.target ? this.player : null,
+        );
+      });
+      const lair = new Lair(id, position_x, position_y, name, monster_type, max_monsters, monsters_alive, initMonsters, spawn_timer, radius);
       this.lairs.push(lair);
-
-      // Spawn initial monsters for each lair
-      for (let i = 0; i < lair.maxMonsters; i++) {
-        try {
-          lair.spawnMonster();
-        } catch (error) {
-          console.error('Failed to spawn monster:', error);
-        }
-      }
     });
+    console.log('Total lairs initialized:', this.lairs.length);
+    console.log('Total monsters initialized:', this.lairs.reduce((acc, lair) => acc + lair.monsters.length, 0));
   }
 
   // Add method to update online player data
@@ -79,6 +88,19 @@ export class GameConstructor implements IGame {
       onlinePlayer.targetPosition = { x, y };
       onlinePlayer.health = health;
       onlinePlayer.mana = mana;
+    }
+  }
+
+  // Add method to sync monsters with server
+  syncMonsters(monster: DBMonster): void {
+    const updateMonster = this.monsters.find(m => m.id === monster.id);
+    if (updateMonster) {
+      updateMonster.updatedState = {
+        position: { x: monster.position_x, y: monster.position_y },
+        target: monster.target ? this.player : null,
+        health: monster.health,
+        lastAttackTime: monster.last_attack_time
+      }
     }
   }
 
@@ -94,7 +116,7 @@ export class GameConstructor implements IGame {
 
     // Get all monsters from lairs - optimize for mobile by reducing update frequency
     if (!this.isMobile || Math.random() < 0.5) {
-      this.monsters = this.lairs.flatMap(lair => lair.currentMonsters);
+      this.monsters = this.lairs.flatMap(lair => lair.monsters);
     }
 
     // Update controls
@@ -116,10 +138,8 @@ export class GameConstructor implements IGame {
     this.camera.x = this.player.position.x - this.canvas.canvas.width / 2;
     this.camera.y = this.player.position.y - this.canvas.canvas.height * (1 - this.VERTICAL_OFFSET);
 
-    // Update all online players with interpolation
-    this.onlinePlayers?.forEach(player => {
-      if (player.id === this.player.id) return;
-      
+    // Sync online players with server with interpolation
+    this.onlinePlayers?.forEach(player => {    
       // Update online player position with interpolation
       if (player.targetPosition) {
         player.updateOnlinePlayer(player.targetPosition);
@@ -138,9 +158,16 @@ export class GameConstructor implements IGame {
     for (let i = 0; i < Math.min(monsterUpdateLimit, this.monsters.length); i++) {
       const monster = this.monsters[i];
       if (!monster.isDead()) {
-        monster.update(this.player, this.map);
+        monster.update(this.map, this.onlinePlayers);
       }
     }
+
+    // Sync monsters with server with interpolation
+    this.monsters.forEach(monster => {
+      if (monster.updatedState) {
+        monster.updateMonster(monster.updatedState.position, monster.updatedState.health, monster.updatedState.lastAttackTime, monster.updatedState.target);
+      }
+    });
   }
 
   draw(): void {
@@ -153,11 +180,6 @@ export class GameConstructor implements IGame {
 
     // Draw map with optimizations for mobile
     this.map.draw(this.canvas, this.camera);
-
-    // Draw lairs
-    this.lairs.forEach(lair => {
-      lair.draw(this.canvas);
-    });
 
     // Draw monsters with distance-based culling
     const viewDistance = this.isMobile ? 800 : 1200;

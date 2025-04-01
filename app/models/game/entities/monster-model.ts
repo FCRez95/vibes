@@ -1,12 +1,11 @@
 import { ICanvas } from "../engine/canvas";
 import { PlayerModel } from "./player-model";
 import { IMap } from "../engine/map";
+import { IPosition } from "../engine/position";
 
 export interface MonsterModel {
-    id: string;
-    name: string;
-    type: string;
-    level: number;
+    id: number;
+    monster: string;
     health: number;
     maxHealth: number;
     position: {
@@ -14,10 +13,10 @@ export interface MonsterModel {
         y: number;
     };
     stats: {
-        strength: number;
-        dexterity: number;
-        intelligence: number;
-        vitality: number;
+        combat: number;
+        magic: number;
+        shield: number;
+        running: number;
     };
     drops: {
         item: string;
@@ -27,9 +26,20 @@ export interface MonsterModel {
         type: 'aggressive' | 'passive' | 'fleeing';
         range: number;
         attackPattern: string;
+        target: PlayerModel | null;
+        agroRange: number;
+        attackCooldown: number;
+        lastAttackTime: number;
+    };
+    updatedState: {
+        position: IPosition | null;
+        target: PlayerModel | null;
+        health: number | null;
+        lastAttackTime: number | null;
     };
 
     isDead(): boolean;
-    update(player: PlayerModel, map: IMap): void;
+    updateMonster(targetPosition: IPosition | null, health: number | null, lastAttackTime: number | null, target: PlayerModel | null): void;
+    update(map: IMap, onlinePlayers: PlayerModel[] | null): void;
     draw(canvas: ICanvas, camera: { x: number; y: number }): void;
 } 
