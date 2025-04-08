@@ -1,36 +1,19 @@
+import { ICanvas } from "../engine/canvas";
+import { EffectModel } from "./effect-model";
+
+export interface DropModel {
+  item: ItemModel;
+  amount: number;
+  chance: number;
+}
+
 export interface ItemModel {
-    name: string;
-    type: 'helmet' | 'chestplate' | 'weapon' | 'shield' | 'legs' | 'boots';
+  identifier: string;
+  name: string;
+  type: 'helmet' | 'chestplate' | 'axe' | 'bow' | 'club' | 'throwing' | 'shield' | 'legs' | 'boots';
+  damageMin?: number;
+  damageMax?: number;
+  defense?: number;
+  effect?: EffectModel;
+  image?: any;
 } 
-
-export interface HelmetModel extends ItemModel {
-    name: string;
-    defense: number;
-}
-
-export interface ChestplateModel extends ItemModel {
-    name: string;
-    defense: number;
-}
-
-export interface WeaponModel extends ItemModel {
-    name: string;
-    weaponType: 'axe' | 'bow' | 'club' | 'throwing' | 'staff';
-    damageMin: number;
-    damageMax: number;
-}
-
-export interface ShieldModel extends ItemModel {
-    name: string;
-    defense: number;
-}
-
-export interface LegsModel extends ItemModel {
-    name: string;
-    defense: number;
-}
-
-export interface BootsModel extends ItemModel {
-    name: string;
-    defense: number;
-}

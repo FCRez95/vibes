@@ -14,28 +14,15 @@ export function ExitButton({ onSaveGameState }: ExitButtonProps) {
     setShowConfirmation(true);
   };
   
-  const handleConfirmExit = async () => {
-    setIsSaving(true);
-    try {
-      // Save game state
-      const saved = await onSaveGameState();
-      if (saved) {
-        // Clean up resources and redirect
-        router.push('/account');
-      } else {
-        alert('Failed to save game state. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error during exit:', error);
-      alert('An error occurred while exiting the game.');
-    } finally {
-      setIsSaving(false);
-      setShowConfirmation(false);
-    }
-  };
-  
   const handleCancelExit = () => {
     setShowConfirmation(false);
+  };
+
+  const handleExitGame = async () => {
+    setIsSaving(true);
+    await onSaveGameState();
+    setIsSaving(false);
+    router.push('/account');
   };
 
   return (
@@ -62,7 +49,7 @@ export function ExitButton({ onSaveGameState }: ExitButtonProps) {
                 Cancel
               </button>
               <button
-                onClick={handleConfirmExit}
+                onClick={handleExitGame}
                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
                 disabled={isSaving}
               >

@@ -4,7 +4,7 @@ import { SkillsModal } from './SkillsModal';
 import { EquipmentModal } from './EquipmentModal';
 import { ExitButton } from './ExitButton';
 import { SkillsModel } from '../models/game/entities/skill-model';
-import { ItemModel } from '../models/game/entities/items-model';
+import { Item } from '../game/items/Item';
 import { EquippedItemsModel } from '../models/game/entities/player-model';
 
 interface GameControlsProps {
@@ -12,10 +12,13 @@ interface GameControlsProps {
   onJoystickMove: (direction: { x: number; y: number }) => void;
   onJoystickStart: () => void;
   onJoystickEnd: () => void;
-  onSaveGameState: () => Promise<boolean>;
   skills: () => SkillsModel | undefined;
-  inventory: () => ItemModel[] | undefined;
+  openLoot: () => void;
+  inventory: () => Item[] | undefined;
   equipment: () => EquippedItemsModel | undefined;
+  saveGameState: () => Promise<boolean>;
+  equipItem: (item: Item) => void;
+  unequipItem: (item: Item) => void;
 }
 
 export function GameControls({ 
@@ -23,10 +26,13 @@ export function GameControls({
   onJoystickMove,
   onJoystickStart,
   onJoystickEnd,
-  onSaveGameState,
   skills,
+  openLoot,
   inventory,
-  equipment
+  equipment,
+  saveGameState,
+  equipItem,
+  unequipItem
 }: GameControlsProps) {
   const [isSkillsModalOpen, setIsSkillsModalOpen] = useState(false);
   const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
@@ -47,7 +53,7 @@ export function GameControls({
             >
                 <span role="img" aria-label="equipment">🎒</span>
             </button>
-            <ExitButton onSaveGameState={onSaveGameState} />
+            <ExitButton onSaveGameState={saveGameState} />
         </div>
         <div className="pointer-events-auto">
           <Joystick 
@@ -64,6 +70,14 @@ export function GameControls({
             <span role="img" aria-label="sword">⚔️</span>
           </button>
         </div>
+        <div className="absolute bottom-[130px] right-6 flex gap-4">
+          <button 
+            onClick={openLoot}
+            className="w-16 h-16 rounded-full bg-[#4a90e2a6] border-none pointer-events-auto flex items-center justify-center text-white transition-colors"
+          >
+            <span role="img" aria-label="loot">🖐️</span>
+          </button>
+        </div>
       </div>
       <SkillsModal
         isOpen={isSkillsModalOpen}
@@ -75,6 +89,8 @@ export function GameControls({
         onClose={() => setIsEquipmentModalOpen(false)}
         inventory={inventory}
         equipment={equipment}
+        equipItem={equipItem}
+        unequipItem={unequipItem}
       />
     </div>
   );

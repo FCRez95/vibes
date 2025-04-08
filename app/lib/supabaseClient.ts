@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { Monster } from '../constructors/entitites/monster';
+import { Monster } from '../game/entitites/monster';
 
 export const supabase = createClient(
   'https://altmfkrgfocekmlersvz.supabase.co',
@@ -32,7 +32,7 @@ export interface Skills {
 }
 
 export interface EquippedItems {
-  id: number;
+  id: string;
   player_id: number;
   head: string;
   chest: string;
@@ -44,9 +44,10 @@ export interface EquippedItems {
 
 export interface Inventory {
   id: number;
-  item_id: number;
+  identifier: string;
   player_id: number;
   quantity: number;
+  type: string;
 }
 
 export interface Character {
@@ -60,7 +61,7 @@ export interface Character {
   position_y: number;
   last_attack_time: number;
   online: boolean;
-  skills?: Skills[];
+  skills?: Skills;
   equipped_items?: EquippedItems[];
   inventory?: Inventory[];
 }
@@ -225,36 +226,32 @@ export const updateCharacterSkills = async (
   return { data, error };
 }
 
-export const fetchOnlineCharacters = async () => {
-  const { data, error } = await supabase
-    .from('all_players')
-    .select('*, skills(*), equipped_items(*), inventory(*)')
-    .eq('online', true);
-  return { data, error };
+export const deleteAllInventoryItems = async (playerId: number) => {
+  const { error } = await supabase
+    .from('inventory')
+    .delete()
+    .eq('player_id', playerId);
+  return { error };
 }
 
-export const fetchLairs = async () => {
-  const { data, error } = await supabase
-    .from('lairs')
-    .select('*, monsters(*)');
-  return { data, error };
-}
-
-export const fetchMonsters = async () => {
-  const { data, error } = await supabase
-    .from('monsters')
-    .select('*');
-  return { data, error };
-}
-
-export const updateMonster = async (
-  monsterId: number,
-  monsterData: Partial<Monster>
+export const createInventoryItem = async (
+  inventoryData: Partial<Inventory>
 ) => {
   const { data, error } = await supabase
-    .from('monsters')
-    .update(monsterData)
-    .eq('id', monsterId)
+    .from('inventory')
+    .insert(inventoryData)
+    .select()
+  return { data, error };
+}
+
+export const updateEquippedItems = async (
+  playerId: number,
+  equippedItemsData: Partial<EquippedItems>
+) => {
+  const { data, error } = await supabase
+    .from('equipped_items')
+    .update(equippedItemsData)
+    .eq('player_id', playerId)
     .select();
   return { data, error };
 }
