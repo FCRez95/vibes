@@ -129,9 +129,11 @@ export default function GamePage() {
               const itemData = new Loot(item.id, item.items, item.position);
               gameInstanceRef.current?.worldItems.set(item.id, itemData);
             });
-            // Update player equipments and inventory
+            // Update player
             const playerInstance = gameInstanceRef.current?.player;
             if (playerInstance) {
+              playerInstance.health = action.state.health;
+              playerInstance.mana = action.state.mana;
               playerInstance.inventory = action.state.inventory?.map((item: Item) => new Item(item.type !== 'axe' && item.type !== 'bow' && item.type !== 'club' && item.type !== 'throwing' ? armorList[item.identifier as keyof typeof armorList] : weaponList[item.identifier as keyof typeof weaponList]));
               playerInstance.equipment = {
                 helmet: action.state.equipment.helmet ? new Item(armorList[action.state.equipment.helmet?.identifier as keyof typeof armorList]) : null,
@@ -253,8 +255,8 @@ export default function GamePage() {
       }
     }
 
-    //const socket = new WebSocket("ws://localhost:3001");
-    const socket = new WebSocket("wss://hero-vibes.online");
+    const socket = new WebSocket("ws://localhost:3001");
+    //const socket = new WebSocket("wss://hero-vibes.online");
 
     socket.onopen = () => {
       console.log("Connected to game server!");
@@ -611,9 +613,9 @@ export default function GamePage() {
             }
           }}
           openLoot={openLoot}
-          skills={() => {
+          player={() => {
             if (gameInstanceRef.current) {
-              return gameInstanceRef.current.player.skills;
+              return gameInstanceRef.current.player;
             }
           }}
           inventory={() => {

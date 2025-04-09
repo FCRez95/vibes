@@ -1,22 +1,22 @@
 # Vibing Game Todo List
 
 ## Server
-- [ ] Send Experience
-  - [ ] Attack
-  - [ ] Block
-  - [ ] Evade
-  - [ ] Take Damage
+- [x] Send Experience
+  - [x] Attack
+  - [x] Block
+  - [x] Evade
+  - [x] Take Damage
 
-- [ ] Village
-  - [ ] Draw
-  - [ ] Recover Tile
+- [x] Village
+  - [x] Draw
+  - [x] Recover Tile
 
 ## Front Tasks 
-- [ ] Apply experience
-  - [ ] Attack
-  - [ ] Block
-  - [ ] Evade
-  - [ ] Take Damage
+- [x] Apply experience
+  - [x] Attack
+  - [x] Block
+  - [x] Evade
+  - [x] Take Damage
 
 ## Graphics 
   - Create Elements

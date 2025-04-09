@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { Joystick } from './Joystick';
-import { SkillsModal } from './SkillsModal';
+import { PlayerModal } from './PlayerModal';
 import { EquipmentModal } from './EquipmentModal';
 import { ExitButton } from './ExitButton';
-import { SkillsModel } from '../models/game/entities/skill-model';
 import { Item } from '../game/items/Item';
-import { EquippedItemsModel } from '../models/game/entities/player-model';
+import { EquippedItemsModel, PlayerModel } from '../models/game/entities/player-model';
+import characterPic from '../../public/assets/character/char-idle.png'; 
+import Image from 'next/image';
 
 interface GameControlsProps {
   onAttackClick: () => void;
   onJoystickMove: (direction: { x: number; y: number }) => void;
   onJoystickStart: () => void;
   onJoystickEnd: () => void;
-  skills: () => SkillsModel | undefined;
+  player: () => PlayerModel | undefined;
   openLoot: () => void;
   inventory: () => Item[] | undefined;
   equipment: () => EquippedItemsModel | undefined;
@@ -26,7 +27,7 @@ export function GameControls({
   onJoystickMove,
   onJoystickStart,
   onJoystickEnd,
-  skills,
+  player,
   openLoot,
   inventory,
   equipment,
@@ -34,7 +35,7 @@ export function GameControls({
   equipItem,
   unequipItem
 }: GameControlsProps) {
-  const [isSkillsModalOpen, setIsSkillsModalOpen] = useState(false);
+  const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
   const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
 
   return (
@@ -42,10 +43,10 @@ export function GameControls({
       <div className="flex w-full h-full">
         <div className="absolute top-1 flex justify-center items-center w-full gap-4">
             <button 
-                onClick={() => setIsSkillsModalOpen(true)}
+                onClick={() => setIsPlayerModalOpen(true)}
                 className="w-16 h-16 rounded-full bg-[#4a90e2a6] border-none pointer-events-auto flex items-center justify-center text-white transition-colors"
             >
-                <span role="img" aria-label="skills">📚</span>
+                <Image src={characterPic} alt="skills" className="w-8 h-8" />
             </button>
             <button 
                 onClick={() => setIsEquipmentModalOpen(true)}
@@ -79,10 +80,10 @@ export function GameControls({
           </button>
         </div>
       </div>
-      <SkillsModal
-        isOpen={isSkillsModalOpen}
-        onClose={() => setIsSkillsModalOpen(false)}
-        skills={skills}
+      <PlayerModal
+        isOpen={isPlayerModalOpen}
+        onClose={() => setIsPlayerModalOpen(false)}
+        player={player}
       />
       <EquipmentModal
         isOpen={isEquipmentModalOpen}
