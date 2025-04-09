@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Character, getCurrentUser, fetchUserCharacters, createCharacter, deleteCharacter, createCharacterSkills } from "../lib/supabaseClient";
-
+import bg from "@/public/bg.png";
 export default function AccountPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,10 +82,17 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div 
+      className="min-h-screen bg-gray-100 p-8"
+      style={{
+        backgroundImage: `url(${bg.src})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Your Characters</h1>
           <button
             onClick={() => setShowCreateForm(true)}
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -131,7 +138,7 @@ export default function AccountPage() {
           {characters.map((character) => (
             <div
               key={character.id}
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+              className="bg-white/70 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
             >
               <h3 className="text-xl font-semibold mb-2">{character.name}</h3>
               <div className="space-y-2 mb-4">

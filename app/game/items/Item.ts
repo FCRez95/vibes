@@ -17,8 +17,8 @@ export class Item {
   private readonly SPRITE_WIDTH: number = 32;
   private readonly SPRITE_HEIGHT: number = 32;
 
-  constructor(item: ItemModel, position?: IPosition) {
-    this.id = `item-${Math.random().toString(36).substr(2, 9)}`;
+  constructor(id: string,item: ItemModel, position?: IPosition) {
+    this.id = id;
     this.identifier = item.identifier;
     this.name = item.name;
     this.type = item.type;

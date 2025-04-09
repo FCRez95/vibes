@@ -25,10 +25,11 @@ export function EquipmentModal({ isOpen, onClose, inventory, equipment, equipIte
     equipItem(item);
 
     if (currentEquipment) {
-      const replacedItem = currentEquipment[item.type as keyof EquippedItemsModel];
+      const itemType = item.type === 'axe' || item.type === 'bow' || item.type === 'club' || item.type === 'throwing' ? 'weapon' : item.type;
+      const replacedItem = currentEquipment[itemType as keyof EquippedItemsModel];
       setCurrentEquipment({
         ...currentEquipment,
-        [item.type as keyof EquippedItemsModel]: item
+        [itemType]: item
       });
       
       const newInventory = currentInventory.filter(i => i.id !== item.id);

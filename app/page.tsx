@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { signIn, signUp } from "./lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import bg from "@/public/bg.png";
 
 export default function Home() {
   const [isLogin, setIsLogin] = useState(true);
@@ -40,8 +41,17 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
+    <div 
+      className="min-h-screen flex items-center justify-center"
+      style={{
+        backgroundImage: `url(${bg.src})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundPositionY: '-130px',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      <div className="max-w-md w-full space-y-8 p-8 bg-white/70 rounded-xl shadow-lg">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             {isLogin ? 'Sign in to your account' : 'Create your account'}

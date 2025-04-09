@@ -134,14 +134,14 @@ export default function GamePage() {
             if (playerInstance) {
               playerInstance.health = action.state.health;
               playerInstance.mana = action.state.mana;
-              playerInstance.inventory = action.state.inventory?.map((item: Item) => new Item(item.type !== 'axe' && item.type !== 'bow' && item.type !== 'club' && item.type !== 'throwing' ? armorList[item.identifier as keyof typeof armorList] : weaponList[item.identifier as keyof typeof weaponList]));
+              playerInstance.inventory = action.state.inventory?.map((item: Item) => new Item(item.id, item.type !== 'axe' && item.type !== 'bow' && item.type !== 'club' && item.type !== 'throwing' ? armorList[item.identifier as keyof typeof armorList] : weaponList[item.identifier as keyof typeof weaponList]));
               playerInstance.equipment = {
-                helmet: action.state.equipment.helmet ? new Item(armorList[action.state.equipment.helmet?.identifier as keyof typeof armorList]) : null,
-                chestplate: action.state.equipment.chestplate ? new Item(armorList[action.state.equipment.chestplate?.identifier as keyof typeof armorList]) : null,
-                weapon: action.state.equipment.weapon ? new Item(weaponList[action.state.equipment.weapon?.identifier as keyof typeof weaponList]) : null,
-                shield: action.state.equipment.shield ? new Item(armorList[action.state.equipment.shield?.identifier as keyof typeof armorList]) : null,
-                legs: action.state.equipment.legs ? new Item(armorList[action.state.equipment.legs?.identifier as keyof typeof armorList]) : null,
-                boots: action.state.equipment.boots ? new Item(armorList[action.state.equipment.boots?.identifier as keyof typeof armorList]) : null
+                helmet: action.state.equipment.helmet ? new Item(action.state.equipment.helmet.id, armorList[action.state.equipment.helmet?.identifier as keyof typeof armorList]) : null,
+                chestplate: action.state.equipment.chestplate ? new Item(action.state.equipment.chestplate.id, armorList[action.state.equipment.chestplate?.identifier as keyof typeof armorList]) : null,
+                weapon: action.state.equipment.weapon ? new Item(action.state.equipment.weapon.id, weaponList[action.state.equipment.weapon?.identifier as keyof typeof weaponList]) : null,
+                shield: action.state.equipment.shield ? new Item(action.state.equipment.shield.id, armorList[action.state.equipment.shield?.identifier as keyof typeof armorList]) : null,
+                legs: action.state.equipment.legs ? new Item(action.state.equipment.legs.id, armorList[action.state.equipment.legs?.identifier as keyof typeof armorList]) : null,
+                boots: action.state.equipment.boots ? new Item(action.state.equipment.boots.id, armorList[action.state.equipment.boots?.identifier as keyof typeof armorList]) : null
               }
             }
   
@@ -255,8 +255,8 @@ export default function GamePage() {
       }
     }
 
-    //const socket = new WebSocket("ws://localhost:3001");
-    const socket = new WebSocket("wss://hero-vibes.online");
+    const socket = new WebSocket("ws://localhost:3001");
+    //const socket = new WebSocket("wss://hero-vibes.online");
 
     socket.onopen = () => {
       console.log("Connected to game server!");
@@ -302,14 +302,23 @@ export default function GamePage() {
   // Calculate max experience for each skill based on the level -- 150 * level
   const initializePlayer = (character: PlayerModel, isLocalPlayer: boolean = false, socket: WebSocket | null) => {
     const equipment: EquippedItemsModel = {
-      helmet: character.equipment.helmet ? new Item(armorList[character.equipment.helmet?.identifier as keyof typeof armorList]) : null,
-      chestplate: character.equipment.chestplate ? new Item(armorList[character.equipment.chestplate?.identifier as keyof typeof armorList]) : null,
-      weapon: character.equipment.weapon ? new Item(weaponList[character.equipment.weapon?.identifier as keyof typeof weaponList]) : null,
-      shield: character.equipment.shield ? new Item(armorList[character.equipment.shield?.identifier as keyof typeof armorList]) : null,
-      legs: character.equipment.legs ? new Item(armorList[character.equipment.legs?.identifier as keyof typeof armorList]) : null,
-      boots: character.equipment.boots ? new Item(armorList[character.equipment.boots?.identifier as keyof typeof armorList]) : null,
+      helmet: character.equipment.helmet ? new Item(character.equipment.helmet.id, armorList[character.equipment.helmet?.identifier as keyof typeof armorList]) : null,
+      chestplate: character.equipment.chestplate ? new Item(character.equipment.chestplate.id, armorList[character.equipment.chestplate?.identifier as keyof typeof armorList]) : null,
+      weapon: character.equipment.weapon ? new Item(character.equipment.weapon.id, weaponList[character.equipment.weapon?.identifier as keyof typeof weaponList]) : null,
+      shield: character.equipment.shield ? new Item(character.equipment.shield.id, armorList[character.equipment.shield?.identifier as keyof typeof armorList]) : null,
+      legs: character.equipment.legs ? new Item(character.equipment.legs.id, armorList[character.equipment.legs?.identifier as keyof typeof armorList]) : null,
+      boots: character.equipment.boots ? new Item(character.equipment.boots.id, armorList[character.equipment.boots?.identifier as keyof typeof armorList]) : null,
     };
-    const inventory = character.inventory.map(item => new Item(armorList[item.identifier as keyof typeof armorList]));
+
+    const inventory = character.inventory.map((item) => {
+      console.log('item', item);
+      if (item.type === 'helmet' || item.type === 'chestplate' || item.type === 'legs' || item.type === 'boots' || item.type === 'shield') {
+        return new Item(item.id, armorList[item.identifier as keyof typeof armorList]);
+      } else {
+        return new Item(item.id, weaponList[item.identifier as keyof typeof weaponList]);
+      }
+    });
+
     if (!socket) return null;
     return new Player(
       character.id,
@@ -319,7 +328,7 @@ export default function GamePage() {
       character.health,
       character.maxHealth,
       character.mana,
-      character.maxMana,
+      character.maxMana,  
       character.lastAttackTime,
       character.skills,
       inventory,
