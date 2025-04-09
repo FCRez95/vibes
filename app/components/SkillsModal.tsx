@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SkillsModel } from '../models/game/entities/skill-model';
 
 interface SkillsModalProps {
@@ -8,11 +8,14 @@ interface SkillsModalProps {
 }
 
 export function SkillsModal({ isOpen, onClose, skills }: SkillsModalProps) {
-  if (!isOpen) return null;
+  const [currentSkills, setCurrentSkills] = useState<SkillsModel | undefined>(skills());
 
-  const currentSkills = skills();
+  useEffect(() => {
+    setCurrentSkills(skills());
+  }, [isOpen]);
 
   return (
+    isOpen && (
     <div className="fixed inset-0 bg-[#000000c4] flex items-center justify-center z-50 text-[#383838]">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
@@ -51,5 +54,6 @@ export function SkillsModal({ isOpen, onClose, skills }: SkillsModalProps) {
         </div>
       </div>
     </div>
+    )
   );
 } 

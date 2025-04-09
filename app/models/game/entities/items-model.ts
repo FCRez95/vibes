@@ -1,4 +1,3 @@
-import { ICanvas } from "../engine/canvas";
 import { EffectModel } from "./effect-model";
 
 export interface DropModel {
@@ -15,5 +14,5 @@ export interface ItemModel {
   damageMax?: number;
   defense?: number;
   effect?: EffectModel;
-  image?: any;
-} 
+  image?: HTMLImageElement;
+}

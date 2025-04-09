@@ -22,6 +22,7 @@ import { Goblin } from './entitites/monsters/goblin';
 import { Troll } from './entitites/monsters/troll';
 import { Orc } from './entitites/monsters/orc';
 import { OnlinePlayer } from './entitites/online-player';
+import { GameAction, ActionType } from '../models/game/Actions';
 
 export default function GamePage() {
   const router = useRouter();
@@ -44,6 +45,209 @@ export default function GamePage() {
 
   // Handle websocket connection messages
   useEffect(() => {
+    function handleGameAction(action: GameAction, socket: WebSocket): void {
+      const selectedCharacter = JSON.parse(localStorage.getItem('selectedCharacter') || '{}');
+      switch (action.type) {
+        case ActionType.GAME_STATE:
+          if (!canvasRef.current) return;
+          const canvas = new CanvasManipulator(canvasRef.current);
+          // Set canvas size to match container
+          console.log('Game state:', action.state);
+          const container = canvasRef.current.parentElement;
+          if (container) {
+            const rect = container.getBoundingClientRect();
+            canvas.resize(rect.width, rect.height);
+          }
+  
+          // Initialize local player
+          const player = action.state.player;
+          console.log('player', player);
+          if (!player) {
+            console.error('Could not find local player in game state');
+            return;
+          }
+          const localPlayer = initializePlayer(player, true, socket);
+          if (!localPlayer) {
+            console.error('Failed to initialize local player');
+            return;
+          }
+          
+          // Create Lairs positions array from action.state.monsterLairs
+          const monsterLairs = action.state.world.monsterLairs.map((lair: { position: { x: number, y: number } }) => ({
+            x: lair.position.x,
+            y: lair.position.y
+          }));
+  
+          // Initialize game instance with the canvas, local player, online players map, and world state
+          gameInstanceRef.current = new GameConstructor(
+            canvas,
+            localPlayer,
+            action.state.world.tiles,
+            monsterLairs,
+            socket,
+          );
+          // Set up game loop
+          let lastTime = 0;
+          const targetFPS = gameInstanceRef.current?.isMobile ? 30 : 60;
+          const frameInterval = 1000 / targetFPS;
+          
+          const gameLoop = (currentTime: number) => {
+            if (!lastTime) lastTime = currentTime;
+            const deltaTime = currentTime - lastTime;
+            
+            if (deltaTime >= frameInterval) {
+              if (gameInstanceRef.current) {
+                gameInstanceRef.current.update();
+                gameInstanceRef.current.draw();
+              }
+              lastTime = currentTime - (deltaTime % frameInterval);
+            }
+            
+            requestAnimationFrame(gameLoop);
+          };
+          
+          // Start the game loop
+          requestAnimationFrame(gameLoop);
+          break;
+        
+        case ActionType.GAME_UPDATE:
+          if (gameInstanceRef.current) {
+            // Update monsters
+            action.state.relevantMonsters.forEach((monster: MonsterModel) => {
+              const monsterInstance = gameInstanceRef.current?.monsters.get(monster.id);
+              if (monsterInstance) {
+                monsterInstance.updateMonster(monster.position, monster.health, null);
+              } else {
+                const monsterInstance = initializeMonster(monster);
+                if (monsterInstance) {
+                  gameInstanceRef.current?.monsters.set(monster.id, monsterInstance);
+                }
+              }
+            });
+            // Update world items
+            action.state.relevantWorldItems.forEach((item: Loot) => {
+              const itemData = new Loot(item.id, item.items, item.position);
+              gameInstanceRef.current?.worldItems.set(item.id, itemData);
+            });
+            // Update player equipments and inventory
+            const playerInstance = gameInstanceRef.current?.player;
+            if (playerInstance) {
+              playerInstance.inventory = action.state.inventory?.map((item: Item) => new Item(item.type !== 'axe' && item.type !== 'bow' && item.type !== 'club' && item.type !== 'throwing' ? armorList[item.identifier as keyof typeof armorList] : weaponList[item.identifier as keyof typeof weaponList]));
+              playerInstance.equipment = {
+                helmet: action.state.equipment.helmet ? new Item(armorList[action.state.equipment.helmet?.identifier as keyof typeof armorList]) : null,
+                chestplate: action.state.equipment.chestplate ? new Item(armorList[action.state.equipment.chestplate?.identifier as keyof typeof armorList]) : null,
+                weapon: action.state.equipment.weapon ? new Item(weaponList[action.state.equipment.weapon?.identifier as keyof typeof weaponList]) : null,
+                shield: action.state.equipment.shield ? new Item(armorList[action.state.equipment.shield?.identifier as keyof typeof armorList]) : null,
+                legs: action.state.equipment.legs ? new Item(armorList[action.state.equipment.legs?.identifier as keyof typeof armorList]) : null,
+                boots: action.state.equipment.boots ? new Item(armorList[action.state.equipment.boots?.identifier as keyof typeof armorList]) : null
+              }
+            }
+  
+            //Update online players
+            action.state.relevantPlayers.forEach((player: OnlinePlayerModel) => {
+              const playerInstance = gameInstanceRef.current?.players.get(player.id);
+              if (playerInstance) {
+                playerInstance.updateOnlinePlayer(player.position, player.health, player.mana);
+              }
+              else {
+                const playerInstance = initializeOnlinePlayer(player);
+                if (playerInstance) {
+                  gameInstanceRef.current?.players.set(player.id, playerInstance);
+                }
+              }
+            });
+          }
+          break;
+      
+        case ActionType.LEVEL_UP:
+          if (gameInstanceRef.current) {
+            const { playerId, skill } = action.payload;
+            if (playerId === selectedCharacter.id) {
+              gameInstanceRef.current.player.levelUp(skill as keyof SkillsModel);
+            }
+          }
+          break;
+        
+        case ActionType.PLAYER_BLOCK:
+          if (gameInstanceRef.current) {
+            const { playerId } = action.payload;
+            if (playerId === selectedCharacter.id) {
+              gameInstanceRef.current.player.blockAttack();
+            } else {
+              gameInstanceRef.current.players.get(playerId)?.blockAttack();
+            }
+          }
+          break;
+    
+        case ActionType.PLAYER_EVADE:
+          if (gameInstanceRef.current) {
+            const { playerId } = action.payload;
+            if (playerId === selectedCharacter.id) {
+              gameInstanceRef.current.player.evadeAttack();
+            } else {
+              gameInstanceRef.current.players.get(playerId)?.evadeAttack();
+            }
+          }
+          break;
+          
+        case ActionType.PLAYER_ATTACKED:
+          if (gameInstanceRef.current) {
+            const { playerId, monsterId, skill, experience, damage } = action.payload;
+            const monster = gameInstanceRef.current.monsters.get(monsterId);
+            if (monster) {
+              monster.takeDamage(damage);
+            }
+            if (playerId === selectedCharacter.id) {
+              gameInstanceRef.current.player.skills[skill as keyof SkillsModel].experience += experience;
+            }
+          }
+          break;
+  
+        case ActionType.MONSTER_BLOCK:
+            if (gameInstanceRef.current) {
+              const { monsterId } = action.payload;
+              gameInstanceRef.current.monsters.get(monsterId)?.blockAttack();
+            }
+            break;
+      
+        case ActionType.MONSTER_EVADE:
+          if (gameInstanceRef.current) {
+            const { monsterId } = action.payload;
+            gameInstanceRef.current.monsters.get(monsterId)?.evadeAttack();
+          } 
+          break;
+            
+        case ActionType.MONSTER_ATTACKED:
+          if (gameInstanceRef.current) {
+            const { playerId, damage } = action.payload;
+            if (playerId === selectedCharacter.id) {
+              gameInstanceRef.current.player.takeDamage(damage);
+            } else {
+              gameInstanceRef.current.players.get(playerId)?.takeDamage(damage);
+            }
+          }
+          break;
+  
+        case ActionType.PICKUP_ITEM:
+          const lootItems = gameInstanceRef.current?.worldItems.get(action.lootId)?.items;
+          if (lootItems) {
+            const index = lootItems.findIndex(i => i.identifier === action.itemIdentifier);
+            if (index !== -1) {
+              lootItems.splice(index, 1);
+            }
+            if (lootItems.length === 0) {
+              gameInstanceRef.current?.worldItems.delete(action.lootId);
+            }
+          }
+          break;  
+        
+        case ActionType.PICKUP_ALL_ITEMS:
+          gameInstanceRef.current?.worldItems.delete(action.lootId);
+          break;
+      }
+    }
+
+    //const socket = new WebSocket("wss://hero-vibes.online");
     const socket = new WebSocket("wss://hero-vibes.online");
 
     socket.onopen = () => {
@@ -53,7 +257,7 @@ export default function GamePage() {
 
     socket.onmessage = (event) => {
       try {
-        const action: any = JSON.parse(event.data);
+        const action: GameAction = JSON.parse(event.data);
         handleGameAction(action, socket);
       } catch (error) {
         console.error('Error processing message:', error);
@@ -77,212 +281,6 @@ export default function GamePage() {
       }
     };
   }, []);
-
-  function handleGameAction(action: any, socket: WebSocket): void {
-    const selectedCharacter = JSON.parse(localStorage.getItem('selectedCharacter') || '{}');
-    switch (action.type) {
-      case 'GAME_STATE':
-        if (!canvasRef.current) return;
-        const canvas = new CanvasManipulator(canvasRef.current);
-        // Set canvas size to match container
-        console.log('Game state:', action.state);
-        const container = canvasRef.current.parentElement;
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          canvas.resize(rect.width, rect.height);
-        }
-
-        // Initialize local player
-        const player = action.state.player;
-        console.log('player', player);
-        if (!player) {
-          console.error('Could not find local player in game state');
-          return;
-        }
-        const localPlayer = initializePlayer(player, true, socket);
-        if (!localPlayer) {
-          console.error('Failed to initialize local player');
-          return;
-        }
-        
-        // Create Lairs positions array from action.state.monsterLairs
-        const monsterLairs = action.state.world.monsterLairs.map((lair: any) => ({
-          x: lair.position.x,
-          y: lair.position.y
-        }));
-
-        // Initialize game instance with the canvas, local player, online players map, and world state
-        gameInstanceRef.current = new GameConstructor(
-          canvas,
-          localPlayer,
-          action.state.world.tiles,
-          monsterLairs,
-          socket,
-        );
-        // Set up game loop
-        let lastTime = 0;
-        const targetFPS = gameInstanceRef.current?.isMobile ? 30 : 60;
-        const frameInterval = 1000 / targetFPS;
-        let animationFrameId: number;
-        
-        const gameLoop = (currentTime: number) => {
-          if (!lastTime) lastTime = currentTime;
-          const deltaTime = currentTime - lastTime;
-          
-          if (deltaTime >= frameInterval) {
-            if (gameInstanceRef.current) {
-              gameInstanceRef.current.update();
-              gameInstanceRef.current.draw();
-            }
-            lastTime = currentTime - (deltaTime % frameInterval);
-          }
-          
-          animationFrameId = requestAnimationFrame(gameLoop);
-        };
-        
-        // Start the game loop
-        animationFrameId = requestAnimationFrame(gameLoop);
-        break;
-      
-      case 'PLAYER_LEFT':
-        gameInstanceRef.current?.players.delete(action.playerId);
-        break;
-
-      case 'PLAYER_MOVED':
-        if (gameInstanceRef.current) {
-          gameInstanceRef.current.updatePlayerPosition(action.playerId, action.position.x, action.position.y);
-        }
-        break;
-      
-      case 'GAME_UPDATE':
-        if (gameInstanceRef.current) {
-          // Update monsters
-          action.state.relevantMonsters.forEach((monster: MonsterModel) => {
-            const monsterInstance = gameInstanceRef.current?.monsters.get(monster.id);
-            if (monsterInstance) {
-              monsterInstance.updateMonster(monster.position, monster.health, null);
-            } else {
-              const monsterInstance = initializeMonster(monster);
-              if (monsterInstance) {
-                gameInstanceRef.current?.monsters.set(monster.id, monsterInstance);
-              }
-            }
-          });
-          // Update world items
-          action.state.relevantWorldItems.forEach((item: Loot) => {
-            const itemData = new Loot(item.id, item.items, item.position);
-            gameInstanceRef.current?.worldItems.set(item.id, itemData);
-          });
-          // Update player equipments and inventory
-          const playerInstance = gameInstanceRef.current?.player;
-          if (playerInstance) {
-            playerInstance.inventory = action.state.inventory?.map((item: Item) => new Item(item.type !== 'axe' && item.type !== 'bow' && item.type !== 'club' && item.type !== 'throwing' ? armorList[item.identifier as keyof typeof armorList] : weaponList[item.identifier as keyof typeof weaponList]));
-            playerInstance.equipment = {
-              helmet: action.state.equipment.helmet ? new Item(armorList[action.state.equipment.helmet?.identifier as keyof typeof armorList]) : null,
-              chestplate: action.state.equipment.chestplate ? new Item(armorList[action.state.equipment.chestplate?.identifier as keyof typeof armorList]) : null,
-              weapon: action.state.equipment.weapon ? new Item(weaponList[action.state.equipment.weapon?.identifier as keyof typeof weaponList]) : null,
-              shield: action.state.equipment.shield ? new Item(armorList[action.state.equipment.shield?.identifier as keyof typeof armorList]) : null,
-              legs: action.state.equipment.legs ? new Item(armorList[action.state.equipment.legs?.identifier as keyof typeof armorList]) : null,
-              boots: action.state.equipment.boots ? new Item(armorList[action.state.equipment.boots?.identifier as keyof typeof armorList]) : null
-            }
-          }
-
-          //Update online players
-          action.state.relevantPlayers.forEach((player: OnlinePlayerModel) => {
-            const playerInstance = gameInstanceRef.current?.players.get(player.id);
-            if (playerInstance) {
-              playerInstance.updateOnlinePlayer(player.position, player.health, player.mana);
-            }
-            else {
-              const playerInstance = initializeOnlinePlayer(player);
-              if (playerInstance) {
-                gameInstanceRef.current?.players.set(player.id, playerInstance);
-              }
-            }
-          });
-        }
-        break;
-    
-      case 'LEVEL_UP':
-        if (gameInstanceRef.current) {
-          const { playerId, skill } = action.payload;
-          if (playerId === selectedCharacter.id) {
-            gameInstanceRef.current.player.levelUp(skill as keyof SkillsModel);
-          }
-        }
-        break;
-      
-      case 'PLAYER_BLOCK':
-        if (gameInstanceRef.current) {
-          const { playerId } = action.payload;
-          if (playerId === selectedCharacter.id) {
-            gameInstanceRef.current.player.blockAttack();
-          }
-        }
-        break;
-  
-      case 'PLAYER_EVADE':
-        if (gameInstanceRef.current) {
-          const { playerId } = action.payload;
-          if (playerId === selectedCharacter.id) {
-            gameInstanceRef.current.player.evadeAttack();
-          }
-        }
-        break;
-        
-      case 'PLAYER_ATTACKED':
-        if (gameInstanceRef.current) {
-          const { monsterId, damage } = action.payload;
-          const monster = gameInstanceRef.current.monsters.get(monsterId);
-          if (monster) {
-            monster.takeDamage(damage);
-          }
-        }
-        break;
-
-      case 'MONSTER_BLOCK':
-          if (gameInstanceRef.current) {
-            const { monsterId } = action.payload;
-            gameInstanceRef.current.monsters.get(monsterId)?.blockAttack();
-          }
-          break;
-    
-      case 'MONSTER_EVADE':
-        if (gameInstanceRef.current) {
-          const { monsterId } = action.payload;
-          gameInstanceRef.current.monsters.get(monsterId)?.evadeAttack();
-        } 
-        break;
-          
-      case 'MONSTER_ATTACKED':
-        if (gameInstanceRef.current) {
-          const { playerId, damage } = action.payload;
-          if (playerId === selectedCharacter.id) {
-            gameInstanceRef.current.player.takeDamage(damage);
-          } else {
-            gameInstanceRef.current.players.get(playerId)?.takeDamage(damage);
-          }
-        }
-        break;
-
-      case 'PICKUP_ITEM':
-        const lootItems = gameInstanceRef.current?.worldItems.get(action.lootId)?.items;
-        if (lootItems) {
-          const index = lootItems.findIndex(i => i.identifier === action.itemIdentifier);
-          if (index !== -1) {
-            lootItems.splice(index, 1);
-          }
-          if (lootItems.length === 0) {
-            gameInstanceRef.current?.worldItems.delete(action.lootId);
-          }
-        }
-        break;  
-      
-      case 'PICKUP_ALL_ITEMS':
-        gameInstanceRef.current?.worldItems.delete(action.lootId);
-        break;
-    }
-  }
 
   // Join game on character load
   useEffect(() => {
@@ -619,7 +617,6 @@ export default function GamePage() {
           }}
           equipment={() => {
             if (gameInstanceRef.current) {
-              console.log('equipment', gameInstanceRef.current.player);
               return gameInstanceRef.current.player.equipment;
             }
           }}

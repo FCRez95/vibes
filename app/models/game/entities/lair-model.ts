@@ -15,7 +15,6 @@ export interface LairModel {
     spawn_timer: number;
     
     // Methods
-    spawnMonster(): MonsterModel;
     update(): void;
     canSpawnMonster(): boolean;
 } 

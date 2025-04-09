@@ -23,7 +23,7 @@ const createBoneAxe = (): ItemModel => {
     damageMin: 1,
     damageMax: 5,
     type: "axe",
-    image: boneAxe
+    image: boneAxe as HTMLImageElement
   };
 };
 
@@ -34,7 +34,7 @@ const createTrollWarAxe = (): ItemModel => {
     damageMin: 3,
     damageMax: 5,
     type: "axe",
-    image: trollWarAxe
+    image: trollWarAxe as HTMLImageElement
   };
 };
 
@@ -45,7 +45,7 @@ const createOrcAxe = (): ItemModel => {
     damageMin: 4,
     damageMax: 7,
     type: "axe",
-    image: orcAxe
+    image: orcAxe as HTMLImageElement
   };
 };
 
@@ -56,7 +56,7 @@ const createNatureAxe = (): ItemModel => {
     damageMin: 6,
     damageMax: 9,
     type: "axe",
-    image: natureAxe
+    image: natureAxe as HTMLImageElement
   };
 };
 
@@ -68,7 +68,7 @@ const createBoneClub = (): ItemModel => {
     damageMin: 2,
     damageMax: 4,
     type: "club",
-    image: boneClub
+    image: boneClub as HTMLImageElement
   };
 };
 
@@ -79,7 +79,7 @@ const createClub = (): ItemModel => {
     damageMin: 2,
     damageMax: 4,
     type: "club",
-    image: club
+    image: club as HTMLImageElement
   };
 };
 
@@ -90,7 +90,7 @@ const createBranchClub = (): ItemModel => {
     damageMin: 3,
     damageMax: 5,
     type: "club",
-    image: branchClub
+    image: branchClub as HTMLImageElement
   };
 };
 
@@ -101,7 +101,7 @@ const createOrcClub = (): ItemModel => {
     damageMin: 4,
     damageMax: 8,
     type: "club",
-    image: orcClub
+    image: orcClub as HTMLImageElement
   };
 };
 
@@ -113,7 +113,7 @@ const createVineBow = (): ItemModel => {
     damageMin: 1,
     damageMax: 3,
     type: "bow",
-    image: vineBow
+    image: vineBow as HTMLImageElement
   };
 };
 
@@ -124,7 +124,7 @@ const createBow = (): ItemModel => {
     damageMin: 2,
     damageMax: 4,
     type: "bow",
-    image: bow
+    image: bow as HTMLImageElement
   };
 };
 
@@ -135,7 +135,7 @@ const createElvishBow = (): ItemModel => {
     damageMin: 3,
     damageMax: 6,
     type: "bow",
-    image: elvishBow
+    image: elvishBow as HTMLImageElement
   };
 };
 
@@ -146,7 +146,7 @@ const createOrcHunterBow = (): ItemModel => {
     damageMin: 5,
     damageMax: 9,
     type: "bow",
-    image: orcHunterBow
+    image: orcHunterBow as HTMLImageElement
   };
 };
 
@@ -157,7 +157,7 @@ const createArrow = (): ItemModel => {
     damageMin: 1,
     damageMax: 3,
     type: "bow",
-    image: arrow
+    image: arrow as HTMLImageElement
   };
 };
 
@@ -169,7 +169,7 @@ const createRock = (): ItemModel => {
     damageMin: 1,
     damageMax: 3,
     type: "throwing",
-    image: rock
+    image: rock as HTMLImageElement
   };
 };
 
@@ -180,7 +180,7 @@ const createSpear = (): ItemModel => {
     damageMin: 5,
     damageMax: 9,
     type: "throwing",
-    image: spear
+    image: spear as HTMLImageElement
   };
 };
 
@@ -191,7 +191,7 @@ const createThrowingAxe = (): ItemModel => {
     damageMin: 3,
     damageMax: 6,
     type: "throwing",
-    image: throwingAxe
+    image: throwingAxe as HTMLImageElement
   };
 };
 export const weaponList = {

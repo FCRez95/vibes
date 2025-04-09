@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { EquippedItemsModel } from '../models/game/entities/player-model';
 import { Item } from '../game/items/Item';
 import Image from 'next/image';
+
 interface EquipmentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,10 +13,13 @@ interface EquipmentModalProps {
 }
 
 export function EquipmentModal({ isOpen, onClose, inventory, equipment, equipItem, unequipItem }: EquipmentModalProps) {
-  if (!isOpen) return null;
-
   const [currentInventory, setCurrentInventory] = useState<Item[]>(inventory() || []);
   const [currentEquipment, setCurrentEquipment] = useState<EquippedItemsModel | undefined>(equipment());
+  
+  useEffect(() => {
+    setCurrentInventory(inventory() || []);
+    setCurrentEquipment(equipment());
+  }, [isOpen]);
 
   const handleEquipItem = (item: Item) => {
     equipItem(item);
@@ -27,7 +31,7 @@ export function EquipmentModal({ isOpen, onClose, inventory, equipment, equipIte
         [item.type as keyof EquippedItemsModel]: item
       });
       
-      let newInventory = currentInventory.filter(i => i.id !== item.id);
+      const newInventory = currentInventory.filter(i => i.id !== item.id);
       if (replacedItem) {
         newInventory.push(replacedItem);
       }
@@ -51,6 +55,7 @@ export function EquipmentModal({ isOpen, onClose, inventory, equipment, equipIte
   };
 
   return (
+    isOpen && (
     <div className="fixed inset-0 bg-[#000000c4] flex items-center justify-center z-50 text-[#383838]">
       <div className="bg-white rounded-lg p-6 max-w-6xl w-full max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
@@ -339,5 +344,6 @@ export function EquipmentModal({ isOpen, onClose, inventory, equipment, equipIte
         </div>
       </div>
     </div>
+    )
   );
 } 

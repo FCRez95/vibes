@@ -183,7 +183,6 @@ export class Troll implements MonsterModel {
     const progress = Math.min(elapsed / this.takeDamageAnimation.duration, 1);
 
     // Fade out effec t
-    const opacity = 1 - progress;
     const yOffset = -20 - (progress * 20); // Move up as it fades
 
     // Draw "Take Damage!" text

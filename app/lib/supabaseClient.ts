@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js'
-import { Monster } from '../game/entitites/monster';
 
 export const supabase = createClient(
   'https://altmfkrgfocekmlersvz.supabase.co',

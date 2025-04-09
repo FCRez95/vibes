@@ -1,6 +1,5 @@
 import { LairModel } from "../../models/game/entities/lair-model";
 import { MonsterModel } from "../../models/game/entities/monster-model";
-import { Monster } from "./monster";
 import { IPosition } from "../../models/game/engine/position";
 
 export class Lair implements LairModel {
@@ -35,23 +34,6 @@ export class Lair implements LairModel {
     this.monsters = monsters;
     this.radius = radius;
     this.spawn_timer = spawn_timer;
-  }
-
-  spawnMonster(): MonsterModel {
-    if (!this.canSpawnMonster()) {
-      throw new Error('Cannot spawn more monsters');
-    }
-
-    // Calculate spawn position around the lair
-    const angle = Math.random() * Math.PI * 2;
-    const distance = Math.random() * this.radius;
-    const spawnX = this.position.x + Math.cos(angle) * distance;
-    const spawnY = this.position.y + Math.sin(angle) * distance;
-    const monster = new Monster(1, spawnX, spawnY);
-    monster.lairPosition = this.position;
-    this.monsters.push(monster);
-    this.monsters_alive++;
-    return monster;
   }
 
   update(): void {

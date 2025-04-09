@@ -26,7 +26,6 @@ const createCaciqueHood = (): ItemModel => {
     name: "Cacique Hood",
     defense: 1,
     type: "helmet",
-    image: ''
   };
 };
 const createGoblinMask = (): ItemModel => {
@@ -35,7 +34,7 @@ const createGoblinMask = (): ItemModel => {
     name: "Goblin Mask",
     defense: 2,
     type: "helmet",
-    image: goblinMask
+    image: goblinMask as HTMLImageElement
   };
 };
 
@@ -45,7 +44,7 @@ const createWolfSkinHood = (): ItemModel => {
     name: "Wolf Skin Hood",
     defense: 4,
     type: "helmet",
-    image: wolfSkinHood
+    image: wolfSkinHood as HTMLImageElement
   };
 };
 
@@ -56,7 +55,7 @@ const createTribesShirt = (): ItemModel => {
     name: "Tribes Shirt",
     defense: 1,
     type: "chestplate",
-    image: tribesShirt
+    image: tribesShirt as HTMLImageElement
   };
 };
 
@@ -66,7 +65,7 @@ const createRatFurArmor = (): ItemModel => {
     name: "Rat Fur Armor",
     defense: 2,
     type: "chestplate",
-    image: ratFurArmor
+    image: ratFurArmor as HTMLImageElement
   };
 };
 
@@ -76,7 +75,7 @@ const createLeatherVest = (): ItemModel => {
     name: "Leather Vest",
     defense: 3,
     type: "chestplate",
-    image: leatherVest
+    image: leatherVest as HTMLImageElement
   };
 };
 
@@ -86,7 +85,7 @@ const createTrollChestpiece = (): ItemModel => {
     name: "Troll Chestpiece",
     defense: 4,
     type: "chestplate",
-    image: trollChestpiece
+    image: trollChestpiece as HTMLImageElement
   };
 };
 
@@ -96,7 +95,7 @@ const createOrcLeaderVest = (): ItemModel => {
     name: "Orc Leader Vest",
     defense: 6,
     type: "chestplate",
-    image: orcLeaderVest
+    image: orcLeaderVest as HTMLImageElement
   };
 };
 
@@ -106,7 +105,7 @@ const createOrcShammanCoat = (): ItemModel => {
     name: "Orc Shamman Coat",
     defense: 5,
     type: "chestplate",
-    image: shammanOrcCoat
+    image: shammanOrcCoat as HTMLImageElement
   };
 };
 
@@ -118,7 +117,7 @@ const createBatBoots = (): ItemModel => {
     name: "Bat Boots",
     defense: 1,
     type: "boots",
-    image: batBoots
+    image: batBoots as HTMLImageElement
   };
 };
 
@@ -128,7 +127,7 @@ const createRatBoneBoots = (): ItemModel => {
     name: "Rat Bone Boots",
     defense: 2,
     type: "boots",
-    image: ratBoneBoots
+    image: ratBoneBoots as HTMLImageElement
   };
 };
 
@@ -138,7 +137,7 @@ const createTrollSandals = (): ItemModel => {
     name: "Troll Sandals",
     defense: 3,
     type: "boots",
-    image: trollSandals
+    image: trollSandals as HTMLImageElement
   };
 };
 const createFurBoots = (): ItemModel => {
@@ -147,7 +146,7 @@ const createFurBoots = (): ItemModel => {
     name: "Fur Boots",
     defense: 3,
     type: "boots",
-    image: furBoots
+    image: furBoots as HTMLImageElement
   };
 };
 
@@ -157,7 +156,7 @@ const createLeatherBoots = (): ItemModel => {
     name: "Leather Boots",
     defense: 4,
     type: "boots",
-    image: leatherBoots
+    image: leatherBoots as HTMLImageElement
   };
 };
 
@@ -167,7 +166,7 @@ const createOrcWarriorBoots = (): ItemModel => {
     name: "Orc Warrior Boots",
     defense: 5,
     type: "boots",
-    image: orcWarriorBoots
+    image: orcWarriorBoots as HTMLImageElement
   };
 };
 
@@ -178,7 +177,7 @@ const createLeafLoinCloth = (): ItemModel => {
     name: "Leaf Loin Cloth",
     defense: 1,
     type: "legs",
-    image: leafLoinCloth
+    image: leafLoinCloth as HTMLImageElement
   };
 };
 
@@ -188,7 +187,7 @@ const createBatWingsPants = (): ItemModel => {
     name: "Bat Wings Pants",
     defense: 1,
     type: "legs",
-    image: batWingsPants
+    image: batWingsPants as HTMLImageElement
   };
 };
 
@@ -198,7 +197,7 @@ const createGoblinShorts = (): ItemModel => {
     name: "Goblin Shorts",
     defense: 2,
     type: "legs",
-    image: goblinShorts
+    image: goblinShorts as HTMLImageElement
   };
 };
 
@@ -208,7 +207,7 @@ const createLeatherPants = (): ItemModel => {
     name: "Leather Pants",
     defense: 3,
     type: "legs",
-    image: leatherPants
+    image: leatherPants as HTMLImageElement
   };
 };
 
@@ -218,7 +217,7 @@ const createTrollPants = (): ItemModel => {
     name: "Troll Pants",
     defense: 4,
     type: "legs",
-    image: trollPants
+    image: trollPants as HTMLImageElement
   };
 };
 

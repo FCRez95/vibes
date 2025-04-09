@@ -1,7 +1,6 @@
 import { ICanvas } from "../engine/canvas";
 import { PlayerModel } from "./player-model";
 import { IPosition } from "../engine/position";
-import { World } from "../../../game/interface/World";
 
 export interface MonsterModel {
     id: string;

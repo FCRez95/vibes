@@ -1,11 +1,7 @@
 import { ICanvas } from "../../models/game/engine/canvas";
 import { IPosition } from "../../models/game/engine/position";
-import { EquippedItemsModel, OnlinePlayerModel } from "../../models/game/entities/player-model";
-import { World } from "../interface/World";
-import { MonsterModel } from "../../models/game/entities/monster-model";
-import { SkillsModel } from "@/app/models/game/entities/skill-model";
+import { OnlinePlayerModel } from "../../models/game/entities/player-model";
 import charIdle from '../../../public/assets/character/char-idle.png';
-import { Item } from "../items/Item";
 
 export class OnlinePlayer implements OnlinePlayerModel {
   id: number;
@@ -173,7 +169,6 @@ export class OnlinePlayer implements OnlinePlayerModel {
     const progress = Math.min(elapsed / this.takeDamageAnimation.duration, 1);
 
     // Fade out effec t
-    const opacity = 1 - progress;
     const yOffset = -20 - (progress * 20); // Move up as it fades
 
     // Draw "Take Damage!" text
