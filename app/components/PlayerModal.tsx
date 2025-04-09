@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { SkillsModel } from '../models/game/entities/skill-model';
 import { PlayerModel } from '../models/game/entities/player-model';
 
 interface PlayerModalProps {
