@@ -255,8 +255,8 @@ export default function GamePage() {
       }
     }
 
-    const socket = new WebSocket("ws://localhost:3001");
-    //const socket = new WebSocket("wss://hero-vibes.online");
+    //const socket = new WebSocket("ws://localhost:3001");
+    const socket = new WebSocket("wss://hero-vibes.online");
 
     socket.onopen = () => {
       console.log("Connected to game server!");
