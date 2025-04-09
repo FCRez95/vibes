@@ -1,5 +1,23 @@
 # Vibing Game Todo List
 
+## Server
+- [ ] Send Experience
+  - [ ] Attack
+  - [ ] Block
+  - [ ] Evade
+  - [ ] Take Damage
+
+- [ ] Village
+  - [ ] Draw
+  - [ ] Recover Tile
+
+## Front Tasks 
+- [ ] Apply experience
+  - [ ] Attack
+  - [ ] Block
+  - [ ] Evade
+  - [ ] Take Damage
+
 ## Graphics 
   - Create Elements
    - [ ] Big Rock
@@ -7,56 +25,6 @@
 
   - [ ] Implement in Game
 
-## Player
-- [ ] Get reach
-- [ ] Get damage
-- [ ] Get cooldown
-- [ ] Get items stats
-- [ ] Improve game mechanics
-  - [ ] Attack function
-  - [ ] Attack through wall
-
-## Items
-- [x] Weappons
-  - [x] Crude Bow
-  - [x] Bone Axe
-  - [x] Bone Club
-  - [x] Rock
-  - [x] Wood Stick
-- [x] Armor
-  - [x] Shirt Rags
-  - [x] Pants Rags
-  - [x] Leather Hood
-  - [x] Leaf Shoes
-
-## Monsters
-- [ ] Control Global State
-  - [ ] Lairs
-    - [ ] Respawn timer
-    - [x] Max monsters
-    - [x] Monsters alive
-    - [x] Location (x, y)
-    - [x] Monster type
-  - [ ] Monsters
-    - [x] Target
-    - [x] Health
-    - [x] Max health
-    - [x] Position (x, y)
-    - [x] Monster type
-
-- [ ]Create Monsters
-  - [ ] Sprites
-    - [x] Bat
-    - [x] Rat
-    - [x] Goblin
-    - [x] Troll
-    - [x] Orc
-  - Drop loot
-  - Add Name to Head
-
-- [ ] Improve mechanics
-  - [ ] Attack function
-  - [ ] Attack through wall
 
 ## Additional Considerations
 - [ ] User Experience

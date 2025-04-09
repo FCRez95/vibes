@@ -94,6 +94,8 @@ export interface PlayerBlockedAction extends BaseAction {
   payload: {
     playerId: number;
     monsterId: string;
+    skill: string;
+    experience: number;
   };
 }
 
@@ -102,6 +104,8 @@ export interface PlayerEvadedAction extends BaseAction {
   payload: {
     playerId: number;
     monsterId: string;
+    skill: string;
+    experience: number;
   };
 }
 
@@ -127,6 +131,8 @@ export interface MonsterAttackedAction extends BaseAction {
     monsterId: string;
     playerId: number;
     damage: number;
+    experienceShield: number;
+    experienceRunning: number;
   };
 }
 

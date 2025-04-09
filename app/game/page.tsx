@@ -161,18 +161,21 @@ export default function GamePage() {
       
         case ActionType.LEVEL_UP:
           if (gameInstanceRef.current) {
+            console.log('Level up:', action.payload);
             const { playerId, skill } = action.payload;
             if (playerId === selectedCharacter.id) {
               gameInstanceRef.current.player.levelUp(skill as keyof SkillsModel);
             }
+            console.log('Level up:', gameInstanceRef.current.player.skills);
           }
           break;
         
         case ActionType.PLAYER_BLOCK:
           if (gameInstanceRef.current) {
-            const { playerId } = action.payload;
+            const { playerId, skill, experience } = action.payload;
             if (playerId === selectedCharacter.id) {
               gameInstanceRef.current.player.blockAttack();
+              gameInstanceRef.current.player.skills[skill as keyof SkillsModel].experience = Math.round(experience);
             } else {
               gameInstanceRef.current.players.get(playerId)?.blockAttack();
             }
@@ -181,9 +184,10 @@ export default function GamePage() {
     
         case ActionType.PLAYER_EVADE:
           if (gameInstanceRef.current) {
-            const { playerId } = action.payload;
+            const { playerId, skill, experience } = action.payload;
             if (playerId === selectedCharacter.id) {
               gameInstanceRef.current.player.evadeAttack();
+              gameInstanceRef.current.player.skills[skill as keyof SkillsModel].experience = Math.round(experience);
             } else {
               gameInstanceRef.current.players.get(playerId)?.evadeAttack();
             }
@@ -198,7 +202,7 @@ export default function GamePage() {
               monster.takeDamage(damage);
             }
             if (playerId === selectedCharacter.id) {
-              gameInstanceRef.current.player.skills[skill as keyof SkillsModel].experience += experience;
+              gameInstanceRef.current.player.skills[skill as keyof SkillsModel].experience = Math.round(experience);
             }
           }
           break;
@@ -222,6 +226,8 @@ export default function GamePage() {
             const { playerId, damage } = action.payload;
             if (playerId === selectedCharacter.id) {
               gameInstanceRef.current.player.takeDamage(damage);
+              gameInstanceRef.current.player.skills.shield.experience = Math.round(action.payload.experienceShield);
+              gameInstanceRef.current.player.skills.running.experience = Math.round(action.payload.experienceRunning);
             } else {
               gameInstanceRef.current.players.get(playerId)?.takeDamage(damage);
             }
@@ -247,8 +253,8 @@ export default function GamePage() {
       }
     }
 
+    const socket = new WebSocket("ws://localhost:3001");
     //const socket = new WebSocket("wss://hero-vibes.online");
-    const socket = new WebSocket("wss://hero-vibes.online");
 
     socket.onopen = () => {
       console.log("Connected to game server!");

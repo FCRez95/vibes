@@ -4,7 +4,8 @@ import grassImage from '../../../public/assets/terrain/grass.png';
 import dirtImage from '../../../public/assets/terrain/dirt.png';
 import stoneImage from '../../../public/assets/terrain/rocks.png';
 import waterImage from '../../../public/assets/terrain/water.png';
-import templeImage from '../../../public/assets/terrain/sand.png';
+import sandImage from '../../../public/assets/terrain/sand.png';
+import recoveryImage from '../../../public/assets/terrain/recover.png';
 
 
 export interface WorldTile {
@@ -28,8 +29,10 @@ export class World {
   private stoneImageLoaded: boolean = false;
   private waterImage: HTMLImageElement;
   private waterImageLoaded: boolean = false;
-  private templeImage: HTMLImageElement;
-  private templeImageLoaded: boolean = false;
+  private sandImage: HTMLImageElement;
+  private sandImageLoaded: boolean = false;
+  private recoveryImage: HTMLImageElement;
+  private recoveryImageLoaded: boolean = false;
 
   constructor(width: number, height: number, tileSize: number, tiles: WorldTile[][], monsterLairs: { x: number; y: number }[], templePosition: { x: number; y: number }) {
     this.width = width;
@@ -64,10 +67,15 @@ export class World {
     this.waterImage.src = waterImage.src;
     this.waterImageLoaded = true;
 
-    // Load temple image
-    this.templeImage = new Image();
-    this.templeImage.src = templeImage.src;
-    this.templeImageLoaded = true;
+    // Load sand image
+    this.sandImage = new Image();
+    this.sandImage.src = sandImage.src;
+    this.sandImageLoaded = true;
+
+    // Load recovery image
+    this.recoveryImage = new Image();
+    this.recoveryImage.src = recoveryImage.src;
+    this.recoveryImageLoaded = true;
   }
 
   isInBounds(x: number, y: number): boolean {
@@ -129,9 +137,17 @@ export class World {
               this.tileSize,
               this.tileSize
             );
-          } else if (tile.type === 'temple' && this.templeImageLoaded) {
+          } else if (tile.type === 'sand' && this.sandImageLoaded) {
             canvas.drawImage(
-              this.templeImage,
+              this.sandImage,
+              screenX,
+              screenY,
+              this.tileSize,
+              this.tileSize
+            );
+          } else if (tile.type === 'recovery' && this.recoveryImageLoaded) {
+            canvas.drawImage(
+              this.recoveryImage,
               screenX,
               screenY,
               this.tileSize,
