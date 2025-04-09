@@ -21,7 +21,7 @@ const createBoneAxe = (): ItemModel => {
     identifier: "bone-axe",
     name: "Bone Axe",
     damageMin: 1,
-    damageMax: 5,
+    damageMax: 3,
     type: "axe",
     image: boneAxe as HTMLImageElement
   };
@@ -65,8 +65,8 @@ const createBoneClub = (): ItemModel => {
   return {
     identifier: "bone-club",
     name: "Bone Club",
-    damageMin: 2,
-    damageMax: 4,
+    damageMin: 1,
+    damageMax: 3,
     type: "club",
     image: boneClub as HTMLImageElement
   };
@@ -98,7 +98,7 @@ const createOrcClub = (): ItemModel => {
   return {
     identifier: "orc-club",
     name: "Orc Club",
-    damageMin: 4,
+    damageMin: 7,
     damageMax: 8,
     type: "club",
     image: orcClub as HTMLImageElement
@@ -143,8 +143,8 @@ const createOrcHunterBow = (): ItemModel => {
   return {
     identifier: "orc-hunter-bow",
     name: "Orc Hunter Bow",
-    damageMin: 5,
-    damageMax: 9,
+    damageMin: 6,
+    damageMax: 10,
     type: "bow",
     image: orcHunterBow as HTMLImageElement
   };
