@@ -19,7 +19,7 @@ export function EquipmentModal({ isOpen, onClose, inventory, equipment, equipIte
   useEffect(() => {
     setCurrentInventory(inventory() || []);
     setCurrentEquipment(equipment());
-  }, [isOpen]);
+  }, [isOpen, inventory, equipment]);
 
   const handleEquipItem = (item: Item) => {
     equipItem(item);

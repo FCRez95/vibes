@@ -7,13 +7,14 @@ import SmallCore from '../../public/assets/items/core-1.png';
 import MediumCore from '../../public/assets/items/core-2.png';
 import LargeCore from '../../public/assets/items/core-3.png';
 import { runesList } from '../game/runes/Runes';
+import { RuneModel } from '../models/game/Rune';
 
 interface PrayModalProps {
   isOpen: boolean;
   onClose: () => void;
   inventory: () => Item[] | undefined;
   player: () => PlayerModel | undefined;
-  useItem: (item: Item) => void;
+  usingItem: (item: Item) => void;
 }
 
 interface Prayer {
@@ -22,18 +23,18 @@ interface Prayer {
   created_at: string;
 }
 
-export function PrayModal({ isOpen, onClose, inventory, player, useItem }: PrayModalProps) {
+export function PrayModal({ isOpen, onClose, inventory, player, usingItem }: PrayModalProps) {
   const [currentInventory, setCurrentInventory] = useState<Item[]>(inventory() || []);
   const [currentPlayer, setCurrentPlayer] = useState<PlayerModel | undefined>(player());
   const [currentPrayer, setCurrentPrayer] = useState<Prayer | undefined>();
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [showRunes, setShowRunes] = useState<boolean>(false);
-  const [blessingRunes, setBlessingRunes] = useState<any[]>([]);
+  const [blessingRunes, setBlessingRunes] = useState<RuneModel[]>([]);
   
   useEffect(() => {
     setCurrentInventory(inventory() || []);
     setCurrentPlayer(player());
-  }, [isOpen]);
+  }, [isOpen, inventory, player]);
 
   useEffect(() => {
     if (!currentPlayer) return;
@@ -76,7 +77,7 @@ export function PrayModal({ isOpen, onClose, inventory, player, useItem }: PrayM
   }, [currentPrayer]);
 
   const handleUseCore = async (item: Item) => {
-    useItem(item);
+    usingItem(item);
 
     if (!currentPlayer) return;
     if (!item.coreLvl) return;

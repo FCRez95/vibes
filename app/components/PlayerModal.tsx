@@ -12,7 +12,7 @@ export function PlayerModal({ isOpen, onClose, player }: PlayerModalProps) {
 
   useEffect(() => {
     setCurrentPlayer(player());
-  }, [isOpen]);
+  }, [isOpen, player]);
 
   return (
     isOpen && (

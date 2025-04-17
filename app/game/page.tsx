@@ -447,7 +447,7 @@ export default function GamePage() {
     }));
   };
 
-  const useItem = (item: Item) => {
+  const usingItem = (item: Item) => {
     if (!gameInstanceRef.current || !ws) return;
     const player = gameInstanceRef.current.player;
     const newInventory = player.inventory.filter(i => i.id !== item.id);
@@ -646,7 +646,7 @@ export default function GamePage() {
           saveGameState={saveGameState}
           equipItem={equipItem}
           unequipItem={unequipItem}
-          useItem={useItem}
+          usingItem={usingItem}
           onAttackClick={() => {
             if (gameInstanceRef.current) {
               gameInstanceRef.current.controls.handleAttackClick();  

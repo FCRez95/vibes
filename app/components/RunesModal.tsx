@@ -54,7 +54,7 @@ export function RunesModal({ isOpen, onClose, player }: RunesModalProps) {
 
   useEffect(() => {
     setCurrentPlayer(player());
-  }, [isOpen]);
+  }, [isOpen, player]);
 
   useEffect(() => {
     const fetchPlayerRunes = async () => {
@@ -109,7 +109,7 @@ export function RunesModal({ isOpen, onClose, player }: RunesModalProps) {
     // If there was a rune in the slot, return it to inventory
     if (oldRune) {
       if (!currentPlayer?.id) return;
-      const { data, error } = await updateRuneBattleCanvas(currentPlayer?.id, oldRune.id, null);
+      const { error } = await updateRuneBattleCanvas(currentPlayer?.id, oldRune.id, null);
       if (error) throw error;
       setPlayerRunes(prev => [...prev, { rune: oldRune, isBattleCanvas: false }]);
     }
@@ -117,7 +117,7 @@ export function RunesModal({ isOpen, onClose, player }: RunesModalProps) {
     // Assign the new rune to the slot
     newBattleCanvas[slotNumber as keyof BattleCanvas] = runeToAssign;
     if (!currentPlayer?.id) return;
-    const { data, error } = await updateRuneBattleCanvas(currentPlayer?.id, runeToAssign.id, slotNumber);
+    const { error } = await updateRuneBattleCanvas(currentPlayer?.id, runeToAssign.id, slotNumber);
     if (error) throw error;
     setBattleCanvas(newBattleCanvas);
     
@@ -142,7 +142,7 @@ export function RunesModal({ isOpen, onClose, player }: RunesModalProps) {
     setPlayerRunes(prev => [...prev, { rune: runeToRemove, isBattleCanvas: false }]);
     
     // Update database
-    const { data, error } = await updateRuneBattleCanvas(currentPlayer.id, runeToRemove.id, null);
+    const { error } = await updateRuneBattleCanvas(currentPlayer.id, runeToRemove.id, null);
     if (error) throw error;
   };
 

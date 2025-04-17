@@ -10,7 +10,6 @@ import { EquippedItemsModel, PlayerModel } from '../models/game/entities/player-
 import characterPic from '../../public/assets/character/char-idle.png'; 
 import runesPic from '../../public/assets/runes/water.png';
 import Image from 'next/image';
-import { RuneModel } from '../models/game/Rune';
 
 interface GameControlsProps {
   onAttackClick: () => void;
@@ -25,7 +24,7 @@ interface GameControlsProps {
   equipItem: (item: Item) => void;
   unequipItem: (item: Item) => void;
   prayButtonVisible: boolean;
-  useItem: (item: Item) => void;
+  usingItem: (item: Item) => void;
 }
 
 export function GameControls({ 
@@ -41,7 +40,7 @@ export function GameControls({
   equipItem,
   unequipItem,
   prayButtonVisible,
-  useItem
+  usingItem
 }: GameControlsProps) {
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
   const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
@@ -126,7 +125,7 @@ export function GameControls({
         onClose={() => setIsPrayModalOpen(false)}
         inventory={inventory}
         player={player}
-        useItem={useItem}
+        usingItem={usingItem}
       />
       <RunesModal
         isOpen={isRunesModalOpen}
