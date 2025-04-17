@@ -30,7 +30,7 @@ export class GameConstructor implements IGame {
     this.players = new Map();
     this.monsters = new Map();
     this.worldItems = new Map();
-    this.world = new World(14000, 14000, 128, tiles, monsterLairs, {x: 0, y: 0});
+    this.world = new World(24000, 16000, 64, tiles, monsterLairs, {x: 0, y: 0});
     this.controls = new Controls(canvas, player, ws);
 
     // Detect if running on mobile
@@ -146,6 +146,9 @@ export class GameConstructor implements IGame {
     this.worldItems.forEach((item) => {
       item.draw(this.canvas, this.camera);
     });
+
+    // Draw objects
+    this.world.drawObjects(this.canvas, this.camera);
 
     // Draw minimap only on desktop or when explicitly requested on mobile
     if (!this.isMobile) {

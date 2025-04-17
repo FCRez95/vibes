@@ -9,10 +9,11 @@ export interface DropModel {
 export interface ItemModel {
   identifier: string;
   name: string;
-  type: 'helmet' | 'chestplate' | 'axe' | 'bow' | 'club' | 'throwing' | 'shield' | 'legs' | 'boots';
+  type: 'helmet' | 'chestplate' | 'axe' | 'bow' | 'club' | 'throwing' | 'shield' | 'legs' | 'boots' | 'core';
   damageMin?: number;
   damageMax?: number;
   defense?: number;
   effect?: EffectModel;
   image?: HTMLImageElement;
+  coreLvl?: number;
 }

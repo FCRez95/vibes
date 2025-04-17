@@ -7,13 +7,14 @@ export class Item {
   id: string;
   identifier: string;
   name: string;
-  type: "helmet" | "chestplate" | "axe" | "bow" | "club" | "throwing" | "shield" | "legs" | "boots";
+  type: "helmet" | "chestplate" | "axe" | "bow" | "club" | "throwing" | "shield" | "legs" | "boots" | "core";
   damageMin?: number;
   damageMax?: number;
   defense?: number;
   effect?: EffectModel;
   position?: IPosition;
   image?: HTMLImageElement;
+  coreLvl?: number;
   private readonly SPRITE_WIDTH: number = 32;
   private readonly SPRITE_HEIGHT: number = 32;
 
@@ -28,6 +29,7 @@ export class Item {
     this.effect = item.effect;
     this.position = position;
     this.image = item.image;
+    this.coreLvl = item.coreLvl;
   }
 
   draw(canvas: ICanvas, camera: { x: number; y: number }): void {

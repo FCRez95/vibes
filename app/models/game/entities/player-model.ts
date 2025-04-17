@@ -4,6 +4,7 @@ import { World } from "../../../game/interface/World";
 import { MonsterModel } from "./monster-model";
 import { SkillsModel } from "./skill-model";
 import { Item } from "../../../game/items/Item";
+import { RuneModel } from "../Rune";
 
 export interface EquippedItemsModel {
     helmet: Item | null;
@@ -39,6 +40,7 @@ export interface PlayerModel {
     position: IPosition;
     targetPosition: IPosition | null;
     skills: SkillsModel;
+    runes: RuneModel[]
     inventory: Item[];
     equipment: EquippedItemsModel;
     lastAttackTime: number;

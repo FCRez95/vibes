@@ -6,6 +6,7 @@ import { MonsterModel } from "../../models/game/entities/monster-model";
 import { SkillsModel } from "@/app/models/game/entities/skill-model";
 import charIdle from '../../../public/assets/character/char-idle.png';
 import { Item } from "../items/Item";
+import { RuneModel } from "@/app/models/game/Rune";
 
 export class Player implements PlayerModel {
   id: number;
@@ -17,11 +18,14 @@ export class Player implements PlayerModel {
   position: IPosition;
   targetPosition: IPosition | null;
   skills: SkillsModel;
+  runes: RuneModel[];
   inventory: Item[];
   equipment: EquippedItemsModel;
   attackCooldown: number; // Time between attacks in milliseconds
   lastAttackTime: number; // Timestamp of last attack
   websocket: WebSocket;
+  showPrayButton: () => void;
+  hidePrayButton: () => void;
 
   private lastUpdateTime: number = 0;
   private readonly UPDATE_INTERVAL: number = 50; // Increase update interval to 500ms
@@ -80,10 +84,13 @@ export class Player implements PlayerModel {
     maxMana: number,
     lastAttackTime: number,
     skills: SkillsModel,
+    runes: RuneModel[],
     inventory: Item[],
     equipment: EquippedItemsModel,
     isLocalPlayer: boolean = true,
-    websocket: WebSocket
+    websocket: WebSocket,
+    showPrayButton: () => void,
+    hidePrayButton: () => void
   ) {
     this.id = id;
     this.name = name;
@@ -99,7 +106,9 @@ export class Player implements PlayerModel {
     this.isLocalPlayer = isLocalPlayer;
     this.websocket = websocket;
     this.skills = skills;
-
+    this.runes = runes
+    this.showPrayButton = showPrayButton;
+    this.hidePrayButton = hidePrayButton;
     // Initialize inventory and equipment
     this.inventory = inventory;
     this.equipment = equipment;
@@ -181,10 +190,32 @@ export class Player implements PlayerModel {
     const newX = this.position.x + direction.x * speed;
     const newY = this.position.y + direction.y * speed;
 
+    // Player dimensions
+    const playerWidth = 32;
+    const playerHeight = 64;
+
+    // Check if new position is walkable with player's dimensions
+    const isWalkable = world.isWalkable(newX, newY) && 
+      world.isWalkable(newX + playerWidth/2, newY) &&
+      world.isWalkable(newX - playerWidth/2, newY) &&
+      world.isWalkable(newX, newY + playerHeight/2) &&
+      world.isWalkable(newX, newY - playerHeight/2) &&
+      world.isWalkable(newX + playerWidth/2, newY + playerHeight/2) &&
+      world.isWalkable(newX - playerWidth/2, newY - playerHeight/2) &&
+      world.isWalkable(newX + playerWidth/2, newY - playerHeight/2) &&
+      world.isWalkable(newX - playerWidth/2, newY + playerHeight/2);
+
     // Check if new position is walkable and not colliding with monsters
-    if (world.isWalkable(newX, newY) && !this.checkCollision(newX, newY, monsters)) {
+    if (isWalkable && !this.checkCollision(newX, newY, monsters)) {
       this.position.x = newX;
       this.position.y = newY;
+
+      // Check if player is in range of a crystal
+      if (world.checkCrystalInRange(newX, newY)) {
+        this.showPrayButton();
+      } else {
+        this.hidePrayButton();
+      }
 
       // Check if position actually changed
       if (oldX !== newX || oldY !== newY) {
@@ -192,26 +223,31 @@ export class Player implements PlayerModel {
       }
     }
 
-    // Keep player within map bounds
-    this.position.x = Math.max(0, Math.min(this.position.x, world.width));
-    this.position.y = Math.max(0, Math.min(this.position.y, world.height));
+    // Keep player within map bounds, accounting for player dimensions
+    this.position.x = Math.max(playerWidth/2, Math.min(this.position.x, world.width - playerWidth/2));
+    this.position.y = Math.max(playerHeight/2, Math.min(this.position.y, world.height - playerHeight/2));
   }
 
   private checkCollision(x: number, y: number, monsters: MonsterModel[]): boolean {
-    const playerRadius = 20;
+    const playerWidth = 32;
+    const playerHeight = 64;
     const monsterRadius = 15;
-    const totalRadius = playerRadius + monsterRadius;
-    const totalRadiusSquared = totalRadius * totalRadius;
 
-    // Quick distance check using squared distance (avoiding square root)
+    // Player rectangle bounds
+    const playerLeft = x - playerWidth / 2;
+    const playerRight = x + playerWidth / 2;
+    const playerTop = y - playerHeight / 2;
+    const playerBottom = y + playerHeight / 2;
+
     return monsters.some(monster => {
       if (monster.isDead()) return false;
       
-      const dx = x - monster.position.x;
-      const dy = y - monster.position.y;
+      // Calculate distance from player rectangle to monster center
+      const dx = Math.max(playerLeft, Math.min(monster.position.x, playerRight)) - monster.position.x;
+      const dy = Math.max(playerTop, Math.min(monster.position.y, playerBottom)) - monster.position.y;
       const distanceSquared = dx * dx + dy * dy;
       
-      return distanceSquared < totalRadiusSquared;
+      return distanceSquared < monsterRadius * monsterRadius;
     });
   }
 

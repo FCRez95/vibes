@@ -23,6 +23,8 @@ import { Troll } from './entitites/monsters/troll';
 import { Orc } from './entitites/monsters/orc';
 import { OnlinePlayer } from './entitites/online-player';
 import { GameAction, ActionType } from '../models/game/Actions';
+import { coreList } from './items/core';
+import { runesList } from './runes/Runes';
 
 export default function GamePage() {
   const router = useRouter();
@@ -32,7 +34,8 @@ export default function GamePage() {
   const [isLootModalOpen, setIsLootModalOpen] = useState(false);
   const [currentLootItems, setCurrentLootItems] = useState<Item[]>([]);
   const [currentLootId, setCurrentLootId] = useState<string | null>(null);
-  
+  const [isPrayButtonVisible, setIsPrayButtonVisible] = useState(false);
+
   // Get selected character data
   useEffect(() => {
     // Load character from database
@@ -134,7 +137,7 @@ export default function GamePage() {
             if (playerInstance) {
               playerInstance.health = action.state.health;
               playerInstance.mana = action.state.mana;
-              playerInstance.inventory = action.state.inventory?.map((item: Item) => new Item(item.id, item.type !== 'axe' && item.type !== 'bow' && item.type !== 'club' && item.type !== 'throwing' ? armorList[item.identifier as keyof typeof armorList] : weaponList[item.identifier as keyof typeof weaponList]));
+              playerInstance.inventory = action.state.inventory?.map((item: Item) => new Item(item.id, item.type !== 'axe' && item.type !== 'bow' && item.type !== 'club' && item.type !== 'throwing' && item.type !== 'core' ? armorList[item.identifier as keyof typeof armorList] : item.type !== 'core' ? weaponList[item.identifier as keyof typeof weaponList] : coreList[item.identifier as keyof typeof coreList]));
               playerInstance.equipment = {
                 helmet: action.state.equipment.helmet ? new Item(action.state.equipment.helmet.id, armorList[action.state.equipment.helmet?.identifier as keyof typeof armorList]) : null,
                 chestplate: action.state.equipment.chestplate ? new Item(action.state.equipment.chestplate.id, armorList[action.state.equipment.chestplate?.identifier as keyof typeof armorList]) : null,
@@ -298,7 +301,10 @@ export default function GamePage() {
     }
   }, [ws]);
 
-  // Helper function to initialize a player
+
+  // ----------------------------------------------------
+  // HELPER FUNCTIONS TO INITIALIZE ENTITIES
+
   // Calculate max experience for each skill based on the level -- 150 * level
   const initializePlayer = (character: PlayerModel, isLocalPlayer: boolean = false, socket: WebSocket | null) => {
     const equipment: EquippedItemsModel = {
@@ -314,10 +320,14 @@ export default function GamePage() {
       console.log('item', item);
       if (item.type === 'helmet' || item.type === 'chestplate' || item.type === 'legs' || item.type === 'boots' || item.type === 'shield') {
         return new Item(item.id, armorList[item.identifier as keyof typeof armorList]);
-      } else {
+      } else if (item.type === 'axe' || item.type === 'bow' || item.type === 'club' || item.type === 'throwing') {
         return new Item(item.id, weaponList[item.identifier as keyof typeof weaponList]);
+      } else {
+        return new Item(item.id, coreList[item.identifier as keyof typeof coreList]);
       }
     });
+
+    const runes = character.runes.map((rune) => runesList[rune.id as keyof typeof runesList])
 
     if (!socket) return null;
     return new Player(
@@ -331,10 +341,13 @@ export default function GamePage() {
       character.maxMana,  
       character.lastAttackTime,
       character.skills,
+      runes,
       inventory,
       equipment,
       isLocalPlayer,
-      socket
+      socket,
+      showPrayButton,
+      hidePrayButton
     );
   };
 
@@ -359,55 +372,15 @@ export default function GamePage() {
     }
   };
 
-  interface ClosestLoot {
-    id: string;
-    loot: Loot;
-    distance: number;
-  }
-
-  // Function to find the closest loot to the player
-  const findClosestLoot = (): ClosestLoot | null => {
-    if (!gameInstanceRef.current) return null;
-    
-    const player = gameInstanceRef.current.player;
-    let closestLoot: ClosestLoot | null = null;
-    
-    gameInstanceRef.current.worldItems.forEach((loot, id) => {
-      const dx = loot.position.x - player.position.x;
-      const dy = loot.position.y - player.position.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      // Only consider loot within a certain range (e.g., 100 units)
-      if (distance <= 100) {
-        if (!closestLoot || distance < closestLoot.distance) {
-          closestLoot = { id, loot, distance };
-        }
-      }
-    });
-    if (closestLoot) {
-      return closestLoot;
-    }
-    return null;
-  };
-
-  // Function to open the loot modal
-  const openLoot = () => {
-    const closestLoot = findClosestLoot();
-    if (closestLoot) {
-      setCurrentLootItems(closestLoot.loot.items);
-      setCurrentLootId(closestLoot.id);
-      setIsLootModalOpen(true);
-    } else {
-      // You could show a notification here that no loot is nearby
-      console.log('No loot nearby');
-    }
-  };
+  // ----------------------------------------------------
+  // FUNCTIONS TO INTERACT WITH THE SERVER
 
   // Function to pick up a single item
   const pickupItem = (item: ItemModel) => {
     if (!gameInstanceRef.current || !currentLootId || !ws) return;
     
     // Send pickup item action to server
+    console.log('item', item);
     ws.send(JSON.stringify({
       type: "PICKUP_ITEM",
       payload: {
@@ -418,10 +391,10 @@ export default function GamePage() {
     }));
     
     // Remove the item from the current loot items
-    setCurrentLootItems(prevItems => {
+   /*  setCurrentLootItems(prevItems => {
       const newItems = prevItems.filter(i => i.identifier !== item.identifier);
       return newItems;
-    });
+    }); */
     
     // If no items left, close the modal
     if (currentLootItems.length <= 1) {
@@ -473,7 +446,23 @@ export default function GamePage() {
       }
     }));
   };
-  
+
+  const useItem = (item: Item) => {
+    if (!gameInstanceRef.current || !ws) return;
+    const player = gameInstanceRef.current.player;
+    const newInventory = player.inventory.filter(i => i.id !== item.id);
+    player.inventory = newInventory;
+    console.log('newInventory', newInventory);
+    // Send use item action to server
+    ws.send(JSON.stringify({
+      type: "USE_ITEM",
+      payload: {
+        playerId: player.id,
+        itemId: item.id
+      }
+    }));
+  };
+
   // Function to save game state and character progress
   const saveGameState = async (): Promise<boolean> => {
     try {
@@ -593,14 +582,71 @@ export default function GamePage() {
     }
   };
 
+  // ----------------------------------------------------
+  // FUNCTIONS TO INTERACT WITH THE WORLD
+
+  interface ClosestLoot {
+    id: string;
+    loot: Loot;
+    distance: number;
+  }
+  // Function to find the closest loot to the player
+  const findClosestLoot = (): ClosestLoot | null => {
+    if (!gameInstanceRef.current) return null;
+    
+    const player = gameInstanceRef.current.player;
+    let closestLoot: ClosestLoot | null = null;
+    
+    gameInstanceRef.current.worldItems.forEach((loot, id) => {
+      const dx = loot.position.x - player.position.x;
+      const dy = loot.position.y - player.position.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // Only consider loot within a certain range (e.g., 100 units)
+      if (distance <= 100) {
+        if (!closestLoot || distance < closestLoot.distance) {
+          closestLoot = { id, loot, distance };
+        }
+      }
+    });
+    if (closestLoot) {
+      return closestLoot;
+    }
+    return null;
+  };
+
+  // Function to open the loot modal
+  const openLoot = () => {
+    const closestLoot = findClosestLoot();
+    if (closestLoot) {
+      setCurrentLootItems(closestLoot.loot.items);
+      setCurrentLootId(closestLoot.id);
+      setIsLootModalOpen(true);
+    } else {
+      // You could show a notification here that no loot is nearby
+      console.log('No loot nearby');
+    }
+  };
+
+  // Function to show pray button
+  const showPrayButton = () => {
+    setIsPrayButtonVisible(true);
+  };
+
+  const hidePrayButton = () => {
+    setIsPrayButtonVisible(false);
+  };
+
   return (
     <>
       <main className="w-full h-full flex justify-center items-center overflow-hidden touch-none">
         <canvas ref={canvasRef} className="border border-gray-300" />
         <GameControls
+          prayButtonVisible={isPrayButtonVisible}
           saveGameState={saveGameState}
           equipItem={equipItem}
           unequipItem={unequipItem}
+          useItem={useItem}
           onAttackClick={() => {
             if (gameInstanceRef.current) {
               gameInstanceRef.current.controls.handleAttackClick();  

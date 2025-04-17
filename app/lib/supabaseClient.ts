@@ -65,30 +65,6 @@ export interface Character {
   inventory?: Inventory[];
 }
 
-export interface DBLair {
-  id: number;
-  name: string;
-  position_x: number;
-  position_y: number;
-  monster_type: string;
-  max_monsters: number;
-  monsters_alive: number;
-  monsters: DBMonster[];
-  spawn_timer: number;  
-  radius: number;
-}
-
-export interface DBMonster {
-  id: number;
-  monster: number;
-  health: number;
-  max_health: number;
-  position_x: number;
-  position_y: number;
-  target: number;
-  last_attack_time: number;
-}
-
 export const signUp = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -252,5 +228,79 @@ export const updateEquippedItems = async (
     .update(equippedItemsData)
     .eq('player_id', playerId)
     .select();
+  return { data, error };
+}
+
+export const createPray = async (playerId: number, coreLvl: number) => {
+  const { data, error } = await supabase
+    .from('prayers')
+    .insert({ id_player: playerId, core_lvl: coreLvl })
+    .select();
+  return { data, error };
+}
+
+export const fetchPray = async (playerId: number) => {
+  const { data, error } = await supabase
+    .from('prayers')
+    .select('*')
+    .eq('id_player', playerId);
+  return { data, error };
+}
+
+export const deletePrayer = async (prayerId: number) => {
+  const { error } = await supabase
+    .from('prayers')
+    .delete()
+    .eq('id', prayerId);
+  return { error };
+}
+
+export const addRuneToPlayer = async (playerId: number, rune: string) => {
+  console.log(playerId, rune);
+  const { data: existingRune, error: existingRuneError } = await fetchPlayerRune(playerId, rune);
+  if (existingRuneError) {
+    console.error('Error fetching existing rune:', existingRuneError);
+    return { error: existingRuneError };
+  }
+
+  if (existingRune) {
+    const { data: updatedRune, error: updateError } = await supabase
+      .from('player_runes')
+      .update({ amount: existingRune[0].amount + 1 })
+      .eq('id_player', playerId)
+      .eq('rune', rune);
+    return { data: updatedRune, error: updateError };
+  } else {
+    const { data, error } = await supabase
+      .from('player_runes')
+      .insert({ id_player: playerId, rune: rune, amount: 1 })
+      .select();
+    return { data, error };
+  }
+}
+
+export const fetchAllPlayerRunes = async (playerId: number) => {
+  const { data, error } = await supabase
+    .from('player_runes')
+    .select('*')
+    .eq('id_player', playerId);
+  return { data, error };
+}
+
+export const fetchPlayerRune = async (playerId: number, rune: string) => {
+  const { data, error } = await supabase
+    .from('player_runes')
+    .select('*')
+    .eq('id_player', playerId)
+    .eq('rune', rune);
+  return { data, error };
+}
+
+export const updateRuneBattleCanvas = async (playerId: number, rune: string, slot: number | null) => {
+  const { data, error } = await supabase
+    .from('player_runes')
+    .update({ battle_canvas: slot })
+    .eq('id_player', playerId)
+    .eq('rune', rune);
   return { data, error };
 }
