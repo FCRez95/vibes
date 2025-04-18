@@ -64,7 +64,6 @@ export default function GamePage() {
   
           // Initialize local player
           const player = action.state.player;
-          console.log('player', player);
           if (!player) {
             console.error('Could not find local player in game state');
             return;
@@ -166,12 +165,10 @@ export default function GamePage() {
       
         case ActionType.LEVEL_UP:
           if (gameInstanceRef.current) {
-            console.log('Level up:', action.payload);
             const { playerId, skill } = action.payload;
             if (playerId === selectedCharacter.id) {
               gameInstanceRef.current.player.levelUp(skill as keyof SkillsModel);
             }
-            console.log('Level up:', gameInstanceRef.current.player.skills);
           }
           break;
         
@@ -317,7 +314,6 @@ export default function GamePage() {
     };
 
     const inventory = character.inventory.map((item) => {
-      console.log('item', item);
       if (item.type === 'helmet' || item.type === 'chestplate' || item.type === 'legs' || item.type === 'boots' || item.type === 'shield') {
         return new Item(item.id, armorList[item.identifier as keyof typeof armorList]);
       } else if (item.type === 'axe' || item.type === 'bow' || item.type === 'club' || item.type === 'throwing') {
@@ -380,7 +376,6 @@ export default function GamePage() {
     if (!gameInstanceRef.current || !currentLootId || !ws) return;
     
     // Send pickup item action to server
-    console.log('item', item);
     ws.send(JSON.stringify({
       type: "PICKUP_ITEM",
       payload: {
@@ -452,7 +447,6 @@ export default function GamePage() {
     const player = gameInstanceRef.current.player;
     const newInventory = player.inventory.filter(i => i.id !== item.id);
     player.inventory = newInventory;
-    console.log('newInventory', newInventory);
     // Send use item action to server
     ws.send(JSON.stringify({
       type: "USE_ITEM",
@@ -622,9 +616,6 @@ export default function GamePage() {
       setCurrentLootItems(closestLoot.loot.items);
       setCurrentLootId(closestLoot.id);
       setIsLootModalOpen(true);
-    } else {
-      // You could show a notification here that no loot is nearby
-      console.log('No loot nearby');
     }
   };
 
