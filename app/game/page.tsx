@@ -252,6 +252,15 @@ export default function GamePage() {
         case ActionType.PICKUP_ALL_ITEMS:
           gameInstanceRef.current?.worldItems.delete(action.lootId);
           break;
+      
+        case ActionType.SPELL_CREATED:
+          if (gameInstanceRef.current) {
+            console.log('Create spell:', action.payload.spell);
+            if (action.payload.spell.health) {
+              gameInstanceRef.current.player.heal(action.payload.spell.health);
+            }
+          }
+          break;
       }
     }
 
@@ -576,6 +585,18 @@ export default function GamePage() {
     }
   };
 
+  // Function to create a spell
+  const createSpell = (spell: string[]) => {
+    if (!gameInstanceRef.current || !ws) return;
+    ws.send(JSON.stringify({ 
+      type: "CREATE_SPELL", 
+      payload: { 
+        playerId: gameInstanceRef.current.player.id, 
+        spell 
+      } 
+    }));
+  };
+
   // ----------------------------------------------------
   // FUNCTIONS TO INTERACT WITH THE WORLD
 
@@ -638,6 +659,7 @@ export default function GamePage() {
           equipItem={equipItem}
           unequipItem={unequipItem}
           usingItem={usingItem}
+          createSpell={createSpell}
           onAttackClick={() => {
             if (gameInstanceRef.current) {
               gameInstanceRef.current.controls.handleAttackClick();  

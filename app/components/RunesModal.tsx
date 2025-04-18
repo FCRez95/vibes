@@ -9,6 +9,28 @@ interface RunesModalProps {
   isOpen: boolean;
   onClose: () => void;
   player: () => PlayerModel | undefined;
+  battleCanvas: {
+    1: RuneModel | null;
+    2: RuneModel | null;
+    3: RuneModel | null;
+    4: RuneModel | null;
+    5: RuneModel | null;
+    6: RuneModel | null;
+    7: RuneModel | null;
+    8: RuneModel | null;
+    9: RuneModel | null;
+  };
+  setBattleCanvas: React.Dispatch<React.SetStateAction<{
+    1: RuneModel | null;
+    2: RuneModel | null;
+    3: RuneModel | null;
+    4: RuneModel | null;
+    5: RuneModel | null;
+    6: RuneModel | null;
+    7: RuneModel | null;
+    8: RuneModel | null;
+    9: RuneModel | null;
+  }>>;
 }
 
 const runeLevels = {
@@ -36,18 +58,13 @@ interface RuneCardProps {
   isBattleCanvas: boolean;
 }
 
-export function RunesModal({ isOpen, onClose, player }: RunesModalProps) {
-  const [battleCanvas, setBattleCanvas] = useState<BattleCanvas>({
-    1: null,
-    2: null,
-    3: null,
-    4: null,
-    5: null,
-    6: null,
-    7: null,
-    8: null,
-    9: null,
-  });
+export function RunesModal({ 
+  isOpen, 
+  onClose, 
+  player, 
+  battleCanvas,
+  setBattleCanvas 
+}: RunesModalProps) {
   const [playerRunes, setPlayerRunes] = useState<RuneCardProps[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState<PlayerModel | undefined>(player());
   const [runeToAssign, setRuneToAssign] = useState<RuneModel | null>(null);
@@ -111,7 +128,7 @@ export function RunesModal({ isOpen, onClose, player }: RunesModalProps) {
       if (!currentPlayer?.id) return;
       const { error } = await updateRuneBattleCanvas(currentPlayer?.id, oldRune.id, null);
       if (error) throw error;
-      setPlayerRunes(prev => [...prev, { rune: oldRune, isBattleCanvas: false }]);
+      setPlayerRunes(prev => prev.map(r => r.rune.id === oldRune.id ? { ...r, isBattleCanvas: false } : r));
     }
     
     // Assign the new rune to the slot
@@ -139,7 +156,7 @@ export function RunesModal({ isOpen, onClose, player }: RunesModalProps) {
     setBattleCanvas(newBattleCanvas);
     
     // Add to inventory
-    setPlayerRunes(prev => [...prev, { rune: runeToRemove, isBattleCanvas: false }]);
+    setPlayerRunes(prev => prev.map(r => r.rune.id === runeToRemove.id ? { ...r, isBattleCanvas: false } : r));
     
     // Update database
     const { error } = await updateRuneBattleCanvas(currentPlayer.id, runeToRemove.id, null);

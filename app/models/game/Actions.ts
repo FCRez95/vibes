@@ -20,6 +20,7 @@ export enum ActionType {
   PICKUP_ALL_ITEMS = 'PICKUP_ALL_ITEMS',
   EQUIP_ITEM = 'EQUIP_ITEM',
   UNEQUIP_ITEM = 'UNEQUIP_ITEM',
+  SPELL_CREATED = 'SPELL_CREATED',
 }
 
 export interface BaseAction {
@@ -147,6 +148,17 @@ export interface PickupAllItemsAction extends BaseAction {
   lootId: string;
 }
 
+export interface SpellCreatedAction extends BaseAction {
+  type: ActionType.SPELL_CREATED;
+  payload: {
+    playerId: number;
+    spell: {
+      id: string;
+      health?: number;
+    }
+  };
+}
+
 export type GameAction = 
   | GameStateAction
   | GameUpdateAction
@@ -159,5 +171,5 @@ export type GameAction =
   | MonsterAttackedAction
   | PickupItemAction 
   | PickupAllItemsAction
-
+  | SpellCreatedAction;
 

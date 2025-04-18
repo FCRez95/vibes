@@ -5,8 +5,10 @@ import { EquipmentModal } from './EquipmentModal';
 import { ExitButton } from './ExitButton';
 import { PrayModal } from './PrayModal';
 import { RunesModal } from './RunesModal';
+import { BattleCanvas } from './BattleCanvas';
 import { Item } from '../game/items/Item';
 import { EquippedItemsModel, PlayerModel } from '../models/game/entities/player-model';
+import { RuneModel } from '../models/game/Rune';
 import characterPic from '../../public/assets/character/char-idle.png'; 
 import runesPic from '../../public/assets/runes/water.png';
 import Image from 'next/image';
@@ -25,6 +27,7 @@ interface GameControlsProps {
   unequipItem: (item: Item) => void;
   prayButtonVisible: boolean;
   usingItem: (item: Item) => void;
+  createSpell: (spell: string[]) => void;
 }
 
 export function GameControls({ 
@@ -40,12 +43,34 @@ export function GameControls({
   equipItem,
   unequipItem,
   prayButtonVisible,
-  usingItem
+  usingItem,
+  createSpell
 }: GameControlsProps) {
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
   const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
   const [isPrayModalOpen, setIsPrayModalOpen] = useState(false);
   const [isRunesModalOpen, setIsRunesModalOpen] = useState(false);
+  const [battleCanvas, setBattleCanvas] = useState<{
+    1: RuneModel | null;
+    2: RuneModel | null;
+    3: RuneModel | null;
+    4: RuneModel | null;
+    5: RuneModel | null;
+    6: RuneModel | null;
+    7: RuneModel | null;
+    8: RuneModel | null;
+    9: RuneModel | null;
+  }>({
+    1: null,
+    2: null,
+    3: null,
+    4: null,
+    5: null,
+    6: null,
+    7: null,
+    8: null,
+    9: null,
+  });
 
   return (
     <div className="absolute top-0 left-0 w-full h-full">
@@ -78,6 +103,10 @@ export function GameControls({
             onEnd={onJoystickEnd}
           />
         </div>
+        <BattleCanvas 
+          battleCanvas={battleCanvas} 
+          createSpell={createSpell}
+        />
         <div className="absolute bottom-6 right-6 flex gap-4">
           <button 
             onClick={onAttackClick} 
@@ -131,6 +160,8 @@ export function GameControls({
         isOpen={isRunesModalOpen}
         onClose={() => setIsRunesModalOpen(false)}
         player={player}
+        battleCanvas={battleCanvas}
+        setBattleCanvas={setBattleCanvas}
       />
     </div>
   );

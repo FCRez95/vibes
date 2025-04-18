@@ -121,6 +121,13 @@ export class Player implements PlayerModel {
   isDead(): boolean {
     return this.health <= 0;
   }
+  
+  heal(amount: number): void {
+    this.health += amount;
+    if (this.health > this.maxHealth) {
+      this.health = this.maxHealth;
+    }
+  }
 
   levelUp(skill: keyof SkillsModel): void {
     this.skills[skill].level++;
